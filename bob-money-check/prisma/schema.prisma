@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model users {
+  id                String             @id @default(uuid())
+  name              String             @db.VarChar(255)
+  email             String             @db.VarChar(255)
+  password          String             @db.VarChar(255)
+  role              String             @db.VarChar(255)
+  clearances        clearance[]
+  clearancesIndexes clearances_Index[]
+  usedReceipts      used_receipts[]
+  tokens            token[]
+}
+
+model token {
+  id      String @id @default(uuid())
+  user_id String @db.VarChar(255)
+  token   String @db.VarChar(255)
+  date_Created DateTime @default(now())
+  date_ended   DateTime ?
+  user    users  @relation(fields: [user_id], references: [id])
+}
+
+model clearance {
+  id      String   @id @default(uuid())
+  user_id String   @db.VarChar(255)
+  date    DateTime @default(now())
+  active  Boolean  @default(true)
+  user    users    @relation(fields: [user_id], references: [id])
+}
+
+model clearances_Index {
+  id           String @id @default(uuid())
+  user_id      String
+  clearance_id Json
+  user         users  @relation(fields: [user_id], references: [id])
+}
+
+model used_receipts {
+  id      String @id
+  user_id String
+  date    DateTime @default(now())
+  user    users  @relation(fields: [user_id], references: [id])
+}
