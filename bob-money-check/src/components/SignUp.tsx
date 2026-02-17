@@ -2,9 +2,10 @@
 import { inputStyle } from "@/utils/styles";
 import { useState } from "react";
 import { signupStudent } from "@/actions/student";
+import { useRouter } from "next/navigation";
 
 const SignUP =()=>{
-    
+    const router=useRouter();
     const [form,setForm]=useState({
         email:'',
         name:'',
@@ -41,6 +42,7 @@ const SignUP =()=>{
 
     if (result.success){
         setSuccess(true);
+        router.push('/')
     }else{
         setError(result.error||"Oupsi!")
     }
