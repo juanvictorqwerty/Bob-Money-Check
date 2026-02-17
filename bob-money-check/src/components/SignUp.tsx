@@ -73,7 +73,7 @@ const SignUP =()=>{
                         placeholder="name"
                         id="name"
                         name="name"
-                        type="name"
+                        type="text"
                         onChange={handleChange}
                     />
                 </div>
