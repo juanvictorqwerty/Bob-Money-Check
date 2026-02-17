@@ -1,18 +1,20 @@
 "use client"
-import { CreateUser } from "@/utils/authFunction";
 import { inputStyle } from "@/utils/styles";
 import { useState } from "react";
+import { signupStudent } from "@/actions/student";
 
 const SignUP =()=>{
     
     const [form,setForm]=useState({
         email:'',
+        name:'',
         password:'',
         confirmPassword:'',
         matricule:''
     });
     
     const [error, setError] = useState<string>('');
+    const [success,setSuccess]=useState(false);
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -29,7 +31,19 @@ const SignUP =()=>{
     return;
     }
     
-    const result=await(CreateUser)
+    const formData = new FormData();
+    formData.append('email', form.email);
+    formData.append('name',form.name);
+    formData.append('password', form.password);
+    formData.append('matricule', form.matricule);
+    
+    const result=await signupStudent(formData)
+
+    if (result.success){
+        setSuccess(true);
+    }else{
+        setError(result.error||"Oupsi!")
+    }
     console.log('Basic Form:', form);
     console.log(result)
     };
@@ -44,14 +58,24 @@ const SignUP =()=>{
             </div>
             <form className="w-full mt-4 space-y-3" onSubmit={handleSubmit}>
                 <div>
-                <input
-                    className={inputStyle}
-                    placeholder="Email"
-                    id="email"
-                    name="email"
-                    type="email"
-                    onChange={handleChange}
-                />
+                    <input
+                        className={inputStyle}
+                        placeholder="Email"
+                        id="email"
+                        name="email"
+                        type="email"
+                        onChange={handleChange}
+                    />
+                </div>
+                <div>
+                    <input
+                        className={inputStyle}
+                        placeholder="name"
+                        id="name"
+                        name="name"
+                        type="name"
+                        onChange={handleChange}
+                    />
                 </div>
                 <div>
                 <input

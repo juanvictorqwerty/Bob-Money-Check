@@ -13,6 +13,18 @@ export const users = pgTable("users", {
 	unique("users_email_unique").on(table.email)
 ]);
 
+export const student=pgTable("student",{
+	matricule: varchar({length:25}).primaryKey().notNull(),
+	student_id: uuid("user_id").notNull(),
+},(table)=>[
+	unique("matricule_unique").on(table.matricule),
+	foreignKey({
+		columns: [table.student_id],
+		foreignColumns: [users.id],
+		name: "Student_matricule"
+	}).onUpdate("cascade").onDelete("restrict")
+]);
+
 export const clearance = pgTable("clearance", {
 	id: uuid().primaryKey().default(sql`gen_random_uuid()`).notNull(),
 	userId: uuid("user_id").notNull(),
