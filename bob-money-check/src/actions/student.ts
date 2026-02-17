@@ -1,6 +1,7 @@
 'use server'; // ← Mark as server action
 
-import { CreateStudent } from '@/utils/authFunction'; // adjust path
+import { CreateStudent } from '@/utils/authFunction'; 
+import {cookies} from 'next/headers';
 
 export async function signupStudent(formData: FormData) {
     const email = formData.get('email') as string;
@@ -10,8 +11,18 @@ export async function signupStudent(formData: FormData) {
 
     try {
         console.log("Form", formData)
-        const newStudent = await CreateStudent(email, matricule, password, name);
-        return { success: true, student: newStudent };
+        const token = await CreateStudent(email, matricule, password, name);
+
+        //set cookie
+        (await
+            //set cookie
+            cookies()).set('authToken',token as string,{
+            httpOnly:true, //prevents JS access
+            secure: process.env.NODE_ENV ==='production',
+            sameSite:'strict'
+        })
+
+        return { success: true, token:token };
     } catch (error) {
         console.error(error)
         return { success: false, error: 'Failed to create student' };
