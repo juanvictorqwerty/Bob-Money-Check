@@ -1,10 +1,13 @@
 "use client"
 
+import { loginStudent } from "@/actions/student";
 import { inputStyle } from "@/utils/styles";
-import { Preahvihear } from "next/font/google";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const Login =()=>{
+
+    const router=useRouter();
 
     const [form,setForm]=useState({
         email:'',
@@ -24,7 +27,17 @@ const Login =()=>{
 
     const handleSubmit=async(e: React.SubmitEvent)=>{
         e.preventDefault();
-        console.log('submitted',form)
+        const formData = new FormData();
+        formData.append('email', form.email);
+        formData.append('password', form.password);
+        const result=await loginStudent(formData)
+
+        if (result.success){
+            setSuccess(true);
+            router.push('/')
+        }else{
+            setError(result.error||"Oupsi")
+        }
     }
 
     return(
