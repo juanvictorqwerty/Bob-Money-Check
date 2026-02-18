@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import { db } from './db';
 import jwt from 'jsonwebtoken'
 import { users, student,token } from '../../drizzle/schema';
-import { eq, and } from 'drizzle-orm';
+import { and, eq,ne,sql } from 'drizzle-orm';
 
 const JWT_SECRET = process.env.JWT_SECRET as string
 
@@ -92,4 +92,55 @@ export async function SignInStudent(email:string,password:string) {
     }).returning();
 
     return { insertedToken, jwtToken };
+}
+
+export async function logout(endtoken:string) {
+    const result=await db.update(token)
+                            .set({dateEnded:sql`CURRENT_TIMESTAMP`})
+                            .where(eq(token.token,endtoken))
+                            .returning()
+
+    return result[0]||null
+}
+
+export async function MassiveLogout(endtoken:string) {
+    const userIDResult=await db.select({
+            id:token.userId})
+            .from(token)
+            .where(eq(token.token,endtoken))
+    
+    if (userIDResult.length === 0) {
+        return null;
+    }
+
+    const userID = userIDResult[0].id;
+
+    const result=await db.update(token)
+                            .set({dateEnded:sql`CURRENT_TIMESTAMP`})
+                            .where(eq(token.userId,userID))
+                            .returning()
+    return result||null;
+}
+
+export async function logoutAllExcept(currentToken: string) {
+    const userIDResult=await db.select({
+        id:token.userId})
+        .from(token)
+        .where(eq(token.token,currentToken))
+
+    if (userIDResult.length === 0) {
+        return null;
+    }
+
+    const userID = userIDResult[0].id;
+
+    const result = await db.update(token)
+        .set({ dateEnded: sql`CURRENT_TIMESTAMP` })
+        .where(and(
+            eq(token.userId, userID),      // Same user
+            ne(token.token, currentToken)   // Except this token
+        ))
+        .returning();
+
+    return result; // Array of all logged out tokens
 }
