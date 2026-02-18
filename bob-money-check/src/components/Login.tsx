@@ -1,28 +1,59 @@
-const login =()=>{
+"use client"
+
+import { inputStyle } from "@/utils/styles";
+import { Preahvihear } from "next/font/google";
+import { useState } from "react";
+
+const Login =()=>{
+
+    const [form,setForm]=useState({
+        email:'',
+        password:''
+    })
+
+    const [error, setError] = useState<string>('');
+    const [success,setSuccess]=useState(false);
+
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+        setForm(prev => ({
+        ...prev,
+        [name]: value
+        }));
+    };
+
+    const handleSubmit=async(e: React.SubmitEvent)=>{
+        e.preventDefault();
+        console.log('submitted',form)
+    }
+
+    return(
         <div
-        className="w-80 rounded-lg shadow h-auto p-6 bg-white relative overflow-hidden"
+        className="w-full rounded-lg shadow h-auto p-6 bg-white relative overflow-hidden dark:bg-gray-700"
         >
         <div className="flex flex-col justify-center items-center space-y-2">
-            <h2 className="text-2xl font-medium text-slate-700">Login</h2>
+            <h2 className="text-2xl font-bold">Login</h2>
             <p className="text-slate-500">Enter details below.</p>
         </div>
-        <form className="w-full mt-4 space-y-3">
+        <form className="w-full mt-4 space-y-3" onSubmit={handleSubmit}>
             <div>
             <input
-                className="outline-none border-2 rounded-md px-2 py-1 text-slate-500 w-full focus:border-blue-300"
-                placeholder="Username"
-                id="username"
-                name="username"
+                className={inputStyle}
+                placeholder="email"
+                id="email"
+                name="email"
                 type="text"
+                onChange={handleChange}
             />
             </div>
             <div>
             <input
-                className="outline-none border-2 rounded-md px-2 py-1 text-slate-500 w-full focus:border-blue-300"
+                className={inputStyle}
                 placeholder="Password"
                 id="password"
                 name="password"
                 type="password"
+                onChange={handleChange}
             />
             </div>
             <div className="flex items-center justify-between">
@@ -48,10 +79,11 @@ const login =()=>{
             login
             </button>
             <p className="flex justify-center space-x-1">
-            <span className="text-slate-700"> Have an account? </span>
+            <span className="text-slate-700 dark:text-slate-50"> Have an account? </span>
             <a className="text-blue-500 hover:underline" href="#">Sign Up</a>
             </p>
         </form>
         </div>
+    )
 }
-export default login;
+export default Login;
