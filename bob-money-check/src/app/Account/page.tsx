@@ -1,7 +1,9 @@
+import AccountView from "@/components/accountView"
+
 const Account=()=>{
     return(
-        <div>
-            Account Page
+        <div className="w-[50%] flex items-center justify-center mx-auto">
+            <AccountView/>
         </div>
     )
 }

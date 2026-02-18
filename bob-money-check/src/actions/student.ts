@@ -1,6 +1,7 @@
 'use server'; // ← Mark as server action
 
 import { CreateStudent, SignInStudent } from '@/utils/authFunction'; 
+import { getStudentData } from '@/utils/manageStudents';
 import {cookies} from 'next/headers';
 
 export async function signupStudent(formData: FormData) {
@@ -56,4 +57,21 @@ export async function loginStudent(formData:FormData) {
         console.error(error)
         return{success:false,error:'Error try again'}
     }
+}
+
+//it serves more like a controller
+export async function getStudentInfo() {
+    const cookieStore=await cookies();
+    const authToken= cookieStore.get("authToken")?.value
+
+    if (!authToken) {
+        return { success: false, message: "No authentication token found" };
+    }
+
+    const result=await getStudentData(authToken)
+    if(!result){
+        return{success:false,message:"No such student in our records"}
+    }
+    
+    return { success: true, data: result };
 }
