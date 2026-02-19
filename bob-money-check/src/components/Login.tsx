@@ -1,10 +1,14 @@
 "use client"
 
+import { loginStudent } from "@/actions/student";
 import { inputStyle } from "@/utils/styles";
-import { Preahvihear } from "next/font/google";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const Login =()=>{
+
+    const router=useRouter();
 
     const [form,setForm]=useState({
         email:'',
@@ -24,7 +28,17 @@ const Login =()=>{
 
     const handleSubmit=async(e: React.SubmitEvent)=>{
         e.preventDefault();
-        console.log('submitted',form)
+        const formData = new FormData();
+        formData.append('email', form.email);
+        formData.append('password', form.password);
+        const result=await loginStudent(formData)
+
+        if (result.success){
+            setSuccess(true);
+            router.push('/')
+        }else{
+            setError(result.error||"Oupsi")
+        }
     }
 
     return(
@@ -57,18 +71,18 @@ const Login =()=>{
             />
             </div>
             <div className="flex items-center justify-between">
-            <div className="flex items-center">
-                <input
-                className="mr-2 w-4 h-4"
-                id="remember"
-                name="remember"
-                type="checkbox"
-                />
-                <span className="text-slate-500">Remember me </span>
-            </div>
-            <a className="text-blue-500 font-medium hover:underline" href="#"
-                >Forgot Password</a
-            >
+                <div className="flex items-center">
+                    <input
+                    className="mr-2 w-4 h-4"
+                    id="remember"
+                    name="remember"
+                    type="checkbox"
+                    />
+                    <span className="text-slate-500">Remember me </span>
+                </div>
+                <a className="text-blue-500 font-medium hover:underline" href="#"
+                    >Forgot Password</a
+                >
             </div>
             <button
             className="w-full justify-center py-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white ring-2"
@@ -80,7 +94,9 @@ const Login =()=>{
             </button>
             <p className="flex justify-center space-x-1">
             <span className="text-slate-700 dark:text-slate-50"> Have an account? </span>
-            <a className="text-blue-500 hover:underline" href="#">Sign Up</a>
+            <Link className="text-blue-500 hover:underline"  href="/auth/signUPnormal">
+                Sign Up
+            </Link>
             </p>
         </form>
         </div>
