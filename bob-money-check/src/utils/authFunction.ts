@@ -144,3 +144,36 @@ export async function logoutAllExcept(currentToken: string) {
 
     return result; // Array of all logged out tokens
 }
+
+export async function changePassword(
+    userId: string, 
+    currentPassword: string, 
+    newPassword: string
+) {
+    // Get current user
+    const user = await db.select({
+        id: users.id,
+        password: users.password
+    })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+    
+    if (user.length === 0) {
+        return { success: false, error: "User not found" };
+    }
+    
+    // Verify current password
+    const passwordMatch = await bcrypt.compare(currentPassword, user[0].password);
+    if (!passwordMatch) {
+        return { success: false, error: "Current password is incorrect" };
+    }
+    
+    // Hash new password and update
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await db.update(users)
+        .set({ password: hashedPassword })
+        .where(eq(users.id, userId));
+    
+    return { success: true };
+}
