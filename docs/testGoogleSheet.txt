@@ -1,1 +1,4 @@
+#run new tests
 pnpm exec tsx scripts/test-sheet.ts
+
+pnpm exec tsx test-db.ts
