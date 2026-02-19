@@ -235,8 +235,8 @@ const AccountView = () => {
     }
 
     return (
-        <div className="w-full rounded-lg shadow mt-10 h-auto p-6 bg-white relative overflow-hidden dark:bg-gray-700">
-            <div className="flex flex-col justify-center items-center space-y-2 mb-6">
+        <div className="w-full rounded-lg shadow mt-4 sm:mt-10 h-auto p-4 sm:p-6 bg-white relative overflow-hidden dark:bg-gray-700">
+            <div className="flex flex-col justify-center items-center space-y-2 mb-4 sm:mb-6">
                 <div className="h-20 w-20 rounded-full bg-orange-500 flex items-center justify-center">
                     <span className="text-3xl font-bold text-white">
                         {studentData?.name?.charAt(0).toUpperCase() || "?"}
@@ -276,8 +276,8 @@ const AccountView = () => {
                     </div>
                     
                     <div className="space-y-3">
-                        <div className="flex justify-between items-center border-b border-slate-200 dark:border-gray-500 pb-2">
-                            <span className="text-slate-500 dark:text-slate-300 font-medium">Name</span>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-slate-200 dark:border-gray-500 pb-2 gap-2">
+                            <span className="text-slate-500 dark:text-slate-300 font-medium min-w-fit">Name</span>
                             {isEditingProfile ? (
                                 <input
                                     type="text"
@@ -292,21 +292,21 @@ const AccountView = () => {
                             )}
                         </div>
                         
-                        <div className="flex justify-between items-center border-b border-slate-200 dark:border-gray-500 pb-2">
-                            <span className="text-slate-500 dark:text-slate-300 font-medium">Email</span>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-slate-200 dark:border-gray-500 pb-2 gap-2">
+                            <span className="text-slate-500 dark:text-slate-300 font-medium min-w-fit">Email</span>
                             {isEditingProfile ? (
-                                <div className="flex flex-col items-end">
+                                <div className="flex flex-col items-end gap-2 w-full">
                                     <input
                                         type="email"
                                         value={profileForm.email}
                                         onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                                        className="border border-slate-300 dark:border-gray-500 rounded px-2 py-1 text-slate-700 dark:text-gray-50 bg-white dark:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                                        className="w-full border border-slate-300 dark:border-gray-500 rounded px-2 py-1 text-slate-700 dark:text-gray-50 bg-white dark:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                     <input
                                         type="password"
                                         value={profilePassword}
                                         onChange={(e) => setProfilePassword(e.target.value)}
-                                        className="border border-slate-300 dark:border-gray-500 rounded px-2 py-1 text-slate-700 dark:text-gray-50 bg-white dark:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                        className="w-full border border-slate-300 dark:border-gray-500 rounded px-2 py-1 text-slate-700 dark:text-gray-50 bg-white dark:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                         placeholder="Password required"
                                     />
                                 </div>
@@ -317,15 +317,15 @@ const AccountView = () => {
                             )}
                         </div>
                         
-                        <div className="flex justify-between items-center">
-                            <span className="text-slate-500 dark:text-slate-300 font-medium">Matricule</span>
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                            <span className="text-slate-500 dark:text-slate-300 font-medium min-w-fit">Matricule</span>
                             {isEditingMatricule ? (
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                                     <input
                                         type="text"
                                         value={matriculeForm}
                                         onChange={(e) => setMatriculeForm(e.target.value)}
-                                        className="border border-slate-300 dark:border-gray-500 rounded px-2 py-1 text-slate-700 dark:text-gray-50 bg-white dark:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        className="flex-1 sm:flex-none sm:w-32 border border-slate-300 dark:border-gray-500 rounded px-2 py-1 text-slate-700 dark:text-gray-50 bg-white dark:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0"
                                     />
                                     <button
                                         onClick={handleSaveMatricule}
@@ -343,8 +343,8 @@ const AccountView = () => {
                                     </button>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-2">
-                                    <span className="text-slate-700 dark:text-gray-50 font-semibold">
+                                <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                                    <span className="text-slate-700 dark:text-gray-50 font-semibold truncate max-w-[150px] sm:max-w-none">
                                         {studentData?.matricule || "N/A"}
                                     </span>
                                     <button
@@ -363,18 +363,18 @@ const AccountView = () => {
 
                     {/* Edit Profile Buttons */}
                     {isEditingProfile && (
-                        <div className="flex gap-2 mt-4 pt-3 border-t border-slate-200 dark:border-gray-500">
+                        <div className="flex flex-col sm:flex-row gap-2 mt-4 pt-3 border-t border-slate-200 dark:border-gray-500">
                             <button
                                 onClick={handleSaveProfile}
                                 disabled={savingProfile}
-                                className="flex-1 py-2 bg-green-500 hover:bg-green-600 active:bg-green-700 rounded-md text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="w-full sm:flex-1 py-2.5 sm:py-2 min-h-[44px] bg-green-500 hover:bg-green-600 active:bg-green-700 rounded-md text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 {savingProfile ? "Saving..." : "Save"}
                             </button>
                             <button
                                 onClick={handleCancelEdit}
                                 disabled={savingProfile}
-                                className="flex-1 py-2 bg-gray-500 hover:bg-gray-600 active:bg-gray-700 rounded-md text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                className="w-full sm:flex-1 py-2.5 sm:py-2 min-h-[44px] bg-gray-500 hover:bg-gray-600 active:bg-gray-700 rounded-md text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                             >
                                 Cancel
                             </button>
@@ -429,18 +429,18 @@ const AccountView = () => {
                                 />
                             </div>
                             
-                            <div className="flex gap-2 pt-2">
+                            <div className="flex flex-col sm:flex-row gap-2 pt-2">
                                 <button
                                     onClick={handleChangePassword}
                                     disabled={changingPassword}
-                                    className="flex-1 py-2 bg-green-500 hover:bg-green-600 active:bg-green-700 rounded-md text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="w-full sm:flex-1 py-2.5 sm:py-2 min-h-[44px] bg-green-500 hover:bg-green-600 active:bg-green-700 rounded-md text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     {changingPassword ? "Changing..." : "Change Password"}
                                 </button>
                                 <button
                                     onClick={handleCancelPassword}
                                     disabled={changingPassword}
-                                    className="flex-1 py-2 bg-gray-500 hover:bg-gray-600 active:bg-gray-700 rounded-md text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="w-full sm:flex-1 py-2.5 sm:py-2 min-h-[44px] bg-gray-500 hover:bg-gray-600 active:bg-gray-700 rounded-md text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                                 >
                                     Cancel
                                 </button>
@@ -453,7 +453,7 @@ const AccountView = () => {
                     <button
                         onClick={handleLogout}
                         disabled={loggingOut}
-                        className="w-full justify-center py-2 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white font-medium ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="w-full justify-center py-2.5 min-h-[44px] bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white font-medium ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         {loggingOut ? "Logging out..." : "Logout"}
                     </button>
@@ -461,7 +461,7 @@ const AccountView = () => {
                     <button
                         onClick={handleLogoutAllDevices}
                         disabled={loggingOut}
-                        className="w-full justify-center py-2 bg-red-500 hover:bg-red-600 active:bg-red-700 rounded-md text-white font-medium ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                        className="w-full justify-center py-2.5 min-h-[44px] bg-red-500 hover:bg-red-600 active:bg-red-700 rounded-md text-white font-medium ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                         {loggingOut ? "Processing..." : "Logout from all devices"}
                     </button>

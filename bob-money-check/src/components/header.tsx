@@ -7,7 +7,6 @@ import { navLinkStyle } from "@/utils/styles";
 import { DisconnectCurrentDevice, DisconnectAllDevices, DisconnectAllExceptOne } from "@/actions/accountLogout";
 
 const navLinks = [
-  { name: "Home", href: "/" },
   {name:"Account", href:"/Account"}
 ];
 
@@ -24,8 +23,9 @@ export default function Header() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check if user is on auth pages
+  // Check if user is on auth pages or noInternet page
   const isAuthPage = pathname === "/auth/login" || pathname === "/auth/signUPnormal";
+  const isNoInternetPage = pathname === "/noInternet";
 
   useEffect(() => {
     // Check for auth token in cookies
@@ -72,9 +72,19 @@ export default function Header() {
     }
   };
 
-  // Don't render header on auth pages
-  if (isAuthPage) {
-    return null;
+  // Don't render header on auth pages or noInternet
+  if (isAuthPage || isNoInternetPage) {
+    return (
+      <header className="sticky top-0 z-50 h-16 w-full items-stretch justify-stretch border-b border-gray-200 bg-orange-500 backdrop-blur-md dark:border-gray-800 dark:bg-orange-600">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          {/* Logo - No link on noInternet page */}
+          <div className="flex items-center gap-2 text-xl font-bold text-gray-100">
+            <span className="md:hidden">BMC</span>
+            <span className="hidden md:inline">Bob Money Check</span>
+          </div>
+        </div>
+      </header>
+    );
   }
 
   return (
@@ -85,7 +95,8 @@ export default function Header() {
           href="/"
           className="flex items-center gap-2 text-xl font-bold text-gray-100 transition-colors hover:text-gray-50 dark:text-gray-100 dark:hover:text-gray-50"
         >
-          <span>Bob Money Check</span>
+          <span className="md:hidden">BMC</span>
+          <span className="hidden md:inline">Bob Money Check</span>
         </Link>
 
         {/* Desktop Navigation */}
@@ -148,7 +159,7 @@ export default function Header() {
         <button
           type="button"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className="inline-flex items-center justify-center rounded-lg p-2 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-300 dark:hover:bg-gray-800 md:hidden"
+          className="inline-flex items-center justify-center rounded-lg p-2 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-gray-50 dark:hover:bg-gray-800 md:hidden"
           aria-label="Toggle menu"
         >
           <svg
@@ -168,45 +179,32 @@ export default function Header() {
         </button>
 
         {/* Mobile Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-gray-200 bg-white px-4 py-2 shadow-lg dark:border-gray-800 dark:bg-gray-950 md:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-gray-200 bg-orange-400 p-2 px-4 py-2 shadow-lg dark:border-orange-800 dark:bg-orange-500 md:hidden">
+          {/* Bob $ Check Logo/Text */}
+          <Link
+            href="/"
+            className="flex flex-col items-center justify-center px-2"
+          >
+            <span className="text-xs font-bold text-white leading-tight">Bob Money Check</span>
+          </Link>
+
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
-                key={link.href}
+                key={link.name}
                 href={link.href}
-                className={`flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium transition-colors ${
-                  isActive
-                    ? "text-blue-600 dark:text-blue-400"
-                    : "text-gray-600 dark:text-gray-400"
-                }`}
+                className={navLinkStyle(isActive)}
               >
-                {link.name === "Home" && (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={1.5}
-                    stroke="currentColor"
-                    className="h-5 w-5"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"
-                    />
-                  </svg>
-                )}
-                <span>{link.name}</span>
+                {link.name}
               </Link>
             );
           })}
-
           {/* Mobile 3 Dots Menu - Always visible */}
           <button
             type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-400"
+            className="flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-50"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
