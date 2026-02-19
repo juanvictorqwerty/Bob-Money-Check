@@ -1,7 +1,7 @@
 import dotenv from 'dotenv';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
-import { users } from '../../drizzle/schema';
+import { users } from '../drizzle/schema';
 import path from 'path';
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') })
