@@ -1,6 +1,6 @@
 "use client"
 
-import { getStudentInfo, updateStudentProfile, changePasswordAction } from "@/actions/student";
+import { getStudentInfo, updateStudentProfile, changePasswordAction, updateMatricule } from "@/actions/student";
 import { DisconnectCurrentDevice, DisconnectAllDevices } from "@/actions/accountLogout";
 import { inputStyle } from "@/utils/styles";
 import { useState, useEffect } from "react";
@@ -29,9 +29,15 @@ const AccountView = () => {
         newPassword: '', 
         confirmPassword: '' 
     });
+    const [profilePassword, setProfilePassword] = useState('');
     const [savingProfile, setSavingProfile] = useState(false);
     const [changingPassword, setChangingPassword] = useState(false);
     const [successMessage, setSuccessMessage] = useState<string>("");
+    
+    // Matricule edit states
+    const [isEditingMatricule, setIsEditingMatricule] = useState(false);
+    const [matriculeForm, setMatriculeForm] = useState('');
+    const [savingMatricule, setSavingMatricule] = useState(false);
 
     useEffect(() => {
         const fetchStudentInfo = async () => {
@@ -48,6 +54,7 @@ const AccountView = () => {
                 } else if (result.data) {
                     setStudentData(result.data);
                     setProfileForm({ name: result.data.name, email: result.data.email });
+                    setMatriculeForm(result.data.matricule || '');
                 }
             } catch (err) {
                 setError("An error occurred while fetching your account");
@@ -99,14 +106,21 @@ const AccountView = () => {
         const formData = new FormData();
         formData.append('name', profileForm.name);
         formData.append('email', profileForm.email);
+        formData.append('currentPassword', profilePassword);
         
         const result = await updateStudentProfile(formData);
         
         if (result.success) {
             setStudentData(prev => prev ? { ...prev, name: profileForm.name, email: profileForm.email } : null);
             setIsEditingProfile(false);
-            setSuccessMessage("Profile updated successfully!");
-            setTimeout(() => setSuccessMessage(""), 3000);
+            setProfilePassword('');
+            
+            if (result.logoutOtherDevices) {
+                setSuccessMessage("Email updated! You've been logged out from other devices.");
+            } else {
+                setSuccessMessage("Profile updated successfully!");
+            }
+            setTimeout(() => setSuccessMessage(""), 5000);
         } else {
             setMessage(result.error || "Failed to update profile");
         }
@@ -119,6 +133,7 @@ const AccountView = () => {
             setProfileForm({ name: studentData.name, email: studentData.email });
         }
         setIsEditingProfile(false);
+        setProfilePassword('');
         setMessage("");
     };
 
@@ -137,8 +152,13 @@ const AccountView = () => {
         if (result.success) {
             setIsChangingPassword(false);
             setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
-            setSuccessMessage("Password changed successfully!");
-            setTimeout(() => setSuccessMessage(""), 3000);
+            
+            if (result.logoutOtherDevices) {
+                setSuccessMessage("Password changed! You've been logged out from other devices.");
+            } else {
+                setSuccessMessage("Password changed successfully!");
+            }
+            setTimeout(() => setSuccessMessage(""), 5000);
         } else {
             setMessage(result.error || "Failed to change password");
         }
@@ -149,6 +169,34 @@ const AccountView = () => {
     const handleCancelPassword = () => {
         setIsChangingPassword(false);
         setPasswordForm({ currentPassword: '', newPassword: '', confirmPassword: '' });
+        setMessage("");
+    };
+    
+    const handleSaveMatricule = async () => {
+        setSavingMatricule(true);
+        setMessage("");
+        setSuccessMessage("");
+        
+        const formData = new FormData();
+        formData.append('matricule', matriculeForm);
+        
+        const result = await updateMatricule(formData);
+        
+        if (result.success) {
+            setStudentData(prev => prev ? { ...prev, matricule: matriculeForm } : null);
+            setIsEditingMatricule(false);
+            setSuccessMessage("Matricule updated successfully!");
+            setTimeout(() => setSuccessMessage(""), 3000);
+        } else {
+            setMessage(result.error || "Failed to update matricule");
+        }
+        
+        setSavingMatricule(false);
+    };
+    
+    const handleCancelMatricule = () => {
+        setMatriculeForm(studentData?.matricule || '');
+        setIsEditingMatricule(false);
         setMessage("");
     };
 
@@ -247,12 +295,21 @@ const AccountView = () => {
                         <div className="flex justify-between items-center border-b border-slate-200 dark:border-gray-500 pb-2">
                             <span className="text-slate-500 dark:text-slate-300 font-medium">Email</span>
                             {isEditingProfile ? (
-                                <input
-                                    type="email"
-                                    value={profileForm.email}
-                                    onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
-                                    className="border border-slate-300 dark:border-gray-500 rounded px-2 py-1 text-slate-700 dark:text-gray-50 bg-white dark:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                />
+                                <div className="flex flex-col items-end">
+                                    <input
+                                        type="email"
+                                        value={profileForm.email}
+                                        onChange={(e) => setProfileForm({ ...profileForm, email: e.target.value })}
+                                        className="border border-slate-300 dark:border-gray-500 rounded px-2 py-1 text-slate-700 dark:text-gray-50 bg-white dark:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2"
+                                    />
+                                    <input
+                                        type="password"
+                                        value={profilePassword}
+                                        onChange={(e) => setProfilePassword(e.target.value)}
+                                        className="border border-slate-300 dark:border-gray-500 rounded px-2 py-1 text-slate-700 dark:text-gray-50 bg-white dark:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                        placeholder="Password required"
+                                    />
+                                </div>
                             ) : (
                                 <span className="text-slate-700 dark:text-gray-50 font-semibold">
                                     {studentData?.email || "N/A"}
@@ -262,9 +319,45 @@ const AccountView = () => {
                         
                         <div className="flex justify-between items-center">
                             <span className="text-slate-500 dark:text-slate-300 font-medium">Matricule</span>
-                            <span className="text-slate-700 dark:text-gray-50 font-semibold">
-                                {studentData?.matricule || "N/A"}
-                            </span>
+                            {isEditingMatricule ? (
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        type="text"
+                                        value={matriculeForm}
+                                        onChange={(e) => setMatriculeForm(e.target.value)}
+                                        className="border border-slate-300 dark:border-gray-500 rounded px-2 py-1 text-slate-700 dark:text-gray-50 bg-white dark:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    />
+                                    <button
+                                        onClick={handleSaveMatricule}
+                                        disabled={savingMatricule}
+                                        className="px-2 py-1 text-sm bg-green-500 hover:bg-green-600 text-white rounded disabled:opacity-50"
+                                    >
+                                        {savingMatricule ? "..." : "✓"}
+                                    </button>
+                                    <button
+                                        onClick={handleCancelMatricule}
+                                        disabled={savingMatricule}
+                                        className="px-2 py-1 text-sm bg-gray-500 hover:bg-gray-600 text-white rounded disabled:opacity-50"
+                                    >
+                                        ✗
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-slate-700 dark:text-gray-50 font-semibold">
+                                        {studentData?.matricule || "N/A"}
+                                    </span>
+                                    <button
+                                        onClick={() => {
+                                            setMatriculeForm(studentData?.matricule || '');
+                                            setIsEditingMatricule(true);
+                                        }}
+                                        className="text-blue-500 hover:text-blue-600 text-xs font-medium"
+                                    >
+                                        Edit
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -149,7 +149,7 @@ export async function changePassword(
     userId: string, 
     currentPassword: string, 
     newPassword: string
-) {
+): Promise<{ success: boolean; error?: string; logoutOtherDevices?: boolean }> {
     // Get current user
     const user = await db.select({
         id: users.id,

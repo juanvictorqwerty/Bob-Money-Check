@@ -1,11 +1,12 @@
 'use server'; // ← Mark as server action
 
-import { CreateStudent, SignInStudent, changePassword } from '@/utils/authFunction'; 
+import { CreateStudent, SignInStudent, changePassword, logoutAllExcept } from '@/utils/authFunction'; 
 import { getStudentData } from '@/utils/manageStudents';
 import {cookies} from 'next/headers';
 import { db } from '@/utils/db';
 import { users, student, token } from '../../drizzle/schema';
 import { eq, and, isNull } from 'drizzle-orm';
+import bcrypt from 'bcrypt';
 
 export async function signupStudent(formData: FormData) {
     const email = formData.get('email') as string;
@@ -73,7 +74,7 @@ export async function getStudentInfo() {
 
     const result=await getStudentData(authToken)
     if(!result){
-        return{success:false,message:"No such student in our records"}
+        return{success:false,message:"An error happened, please login again"}
     }
     
     return { success: true, data: result };
@@ -82,6 +83,7 @@ export async function getStudentInfo() {
 export async function updateStudentProfile(formData: FormData) {
     const name = formData.get('name') as string;
     const email = formData.get('email') as string;
+    const currentPassword = formData.get('currentPassword') as string;
     
     const cookieStore = await cookies();
     const authToken = cookieStore.get("authToken")?.value;
@@ -106,13 +108,35 @@ export async function updateStudentProfile(formData: FormData) {
     
     const userID = userIDResult[0].id;
     
-    // Check if email is already taken by another user
-    const existingUser = await db.select({ id: users.id })
-        .from(users)
-        .where(and(eq(users.email, email), eq(users.id, userID)));
+    // Get current user data
+    const currentUser = await db.select({
+        id: users.id,
+        email: users.email,
+        password: users.password
+    })
+    .from(users)
+    .where(eq(users.id, userID))
+    .limit(1);
     
-    if (existingUser.length === 0) {
-        // Email might be taken by another user
+    if (currentUser.length === 0) {
+        return { success: false, error: "User not found" };
+    }
+    
+    // Check if email is being changed - require password
+    const isEmailChanged = currentUser[0].email !== email;
+    
+    if (isEmailChanged) {
+        if (!currentPassword) {
+            return { success: false, error: "Password required to change email" };
+        }
+        
+        // Verify current password
+        const passwordMatch = await bcrypt.compare(currentPassword, currentUser[0].password);
+        if (!passwordMatch) {
+            return { success: false, error: "Incorrect password" };
+        }
+        
+        // Check if new email is already taken
         const emailCheck = await db.select({ id: users.id })
             .from(users)
             .where(eq(users.email, email));
@@ -120,6 +144,9 @@ export async function updateStudentProfile(formData: FormData) {
         if (emailCheck.length > 0) {
             return { success: false, error: "Email is already in use" };
         }
+        
+        // Automatically logout from other devices when email changes
+        await logoutAllExcept(authToken);
     }
     
     // Update user record
@@ -127,7 +154,7 @@ export async function updateStudentProfile(formData: FormData) {
         .set({ name, email })
         .where(eq(users.id, userID));
     
-    return { success: true };
+    return { success: true, logoutOtherDevices: isEmailChanged };
 }
 
 export async function changePasswordAction(formData: FormData) {
@@ -168,5 +195,73 @@ export async function changePasswordAction(formData: FormData) {
         return { success: false, error: "Invalid token" };
     }
     
-    return await changePassword(userIDResult[0].id, currentPassword, newPassword);
+    const result = await changePassword(userIDResult[0].id, currentPassword, newPassword);
+    
+    // Automatically logout from other devices when password changes
+    if (result.success) {
+        await logoutAllExcept(authToken);
+        result.logoutOtherDevices = true;
+    }
+    
+    return result;
+}
+
+export async function updateMatricule(formData: FormData) {
+    const matricule = formData.get('matricule') as string;
+    
+    if (!matricule || matricule.trim().length === 0) {
+        return { success: false, error: "Matricule is required" };
+    }
+    
+    const cookieStore = await cookies();
+    const authToken = cookieStore.get("authToken")?.value;
+    
+    if (!authToken) {
+        return { success: false, error: "Not authenticated" };
+    }
+    
+    // Get user ID from token
+    const userIDResult = await db.select({ id: token.userId })
+        .from(token)
+        .where(
+            and(
+                eq(token.token, authToken),
+                isNull(token.dateEnded)
+            )
+        );
+    
+    if (userIDResult.length === 0) {
+        return { success: false, error: "Invalid token" };
+    }
+    
+    const userID = userIDResult[0].id;
+    
+    // Check if matricule is already taken by another student
+    const existingMatricule = await db.select({ student_id: student.student_id })
+        .from(student)
+        .where(eq(student.matricule, matricule));
+    
+    if (existingMatricule.length > 0 && existingMatricule[0].student_id !== userID) {
+        return { success: false, error: "Matricule is already in use" };
+    }
+    
+    // Check if student record exists
+    const existingStudent = await db.select({ matricule: student.matricule })
+        .from(student)
+        .where(eq(student.student_id, userID));
+    
+    if (existingStudent.length === 0) {
+        // Create new student record
+        await db.insert(student).values({
+            student_id: userID,
+            matricule: matricule,
+        });
+    } else {
+        // Update existing student record
+        await db.update(student)
+            .set({ matricule: matricule })
+            .where(eq(student.student_id, userID));
+    }
+    
+    return { success: true };
 }
