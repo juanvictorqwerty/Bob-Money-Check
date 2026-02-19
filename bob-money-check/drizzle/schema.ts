@@ -2,7 +2,6 @@ import { pgTable, varchar, timestamp, text, integer, foreignKey, boolean, jsonb,
 import { sql } from "drizzle-orm"
 import { table } from "console";
 
-
 export const users = pgTable("users", {
 	id: uuid().primaryKey().default(sql`gen_random_uuid()`).notNull(),
 	name: varchar({ length: 255 }).notNull(),
@@ -16,6 +15,8 @@ export const users = pgTable("users", {
 export const student=pgTable("student",{
 	matricule: varchar({length:25}).primaryKey().notNull(),
 	student_id: uuid("user_id").notNull(),
+	due_sum: integer().default(365000).notNull(),
+	excess_fees:integer().default(0).notNull()
 },(table)=>[
 	unique("matricule_unique").on(table.matricule),
 	foreignKey({

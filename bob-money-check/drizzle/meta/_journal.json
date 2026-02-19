@@ -15,6 +15,13 @@
       "when": 1771350555613,
       "tag": "0001_simple_madripoor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771503376242,
+      "tag": "0002_greedy_manta",
+      "breakpoints": true
     }
   ]
 }
