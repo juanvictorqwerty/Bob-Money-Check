@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 export const dynamic = 'force-dynamic';
 
-export default async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
     const authToken = request.cookies.get('authToken')?.value;
     const { pathname } = request.nextUrl;
 
