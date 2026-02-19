@@ -3,6 +3,7 @@ import { inputStyle } from "@/utils/styles";
 import { useState } from "react";
 import { signupStudent } from "@/actions/student";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 const SignUP =()=>{
     const router=useRouter();
@@ -136,7 +137,9 @@ const SignUP =()=>{
                 </button>
                 <p className="flex justify-center">
                 <span className="text-slate-700 dark:text-gray-50"> Have an account?  </span>
-                <a className="text-blue-500 hover:underline" href="#">Login</a>
+                <Link className="text-blue-500 hover:underline"  href="/auth/login">
+                    Login
+                </Link>
                 </p>
             </form>
         </div>

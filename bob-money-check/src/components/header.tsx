@@ -8,6 +8,7 @@ import { DisconnectCurrentDevice, DisconnectAllDevices, DisconnectAllExceptOne }
 
 const navLinks = [
   { name: "Home", href: "/" },
+  {name:"Account", href:"/Account"}
 ];
 
 const logoutOptions = [
