@@ -1,7 +1,7 @@
 'use server'; // ← Mark as server action
 
 import { CreateStudent, SignInStudent, changePassword, logoutAllExcept } from '@/utils/authFunction'; 
-import { getStudentData } from '@/utils/manageStudents';
+import { CheckClearance, getStudentData } from '@/utils/manageStudents';
 import {cookies} from 'next/headers';
 import { db } from '@/utils/db';
 import { users, student, token } from '../../drizzle/schema';
@@ -264,4 +264,13 @@ export async function updateMatricule(formData: FormData) {
     }
     
     return { success: true };
+}
+
+export async function checkValidClearance(formattedReceipt:any) {
+    const response=await CheckClearance(formattedReceipt)
+    if (response===null){
+        console.log('No response')
+        return{success:false,message:"Sorry bro your fees are incomplete"}
+    }
+    return {success:true,message:"Congrats you are cleared"}
 }

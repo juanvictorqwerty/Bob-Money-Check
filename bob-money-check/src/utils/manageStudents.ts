@@ -32,3 +32,14 @@ export async function getStudentData(authToken:string) {
 
     return studentData[0] || null;
 }
+
+export async function CheckClearance(formattedReceipt:any) {
+    
+    try{
+    console.log(formattedReceipt)
+    return(formattedReceipt)
+    }catch(error){
+        console.log(error)
+        return null
+    }
+}

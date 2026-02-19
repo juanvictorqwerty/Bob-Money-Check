@@ -1,4 +1,5 @@
 "use client"
+import { checkValidClearance } from "@/actions/student"
 import { inputStyle } from "@/utils/styles"
 import { useState } from "react"
 import DatePicker from "react-datepicker"
@@ -32,13 +33,15 @@ const InPutReceiptInfo=()=>{
         ))
     }
 
-    const handleSubmit = (e: React.SubmitEvent) => {
+    const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
         const formattedReceipts = receipts.map(r => ({
             receiptID: r.receiptID,
             paymentDate: r.paymentDate ? r.paymentDate.toISOString().split('T')[0] : null
         }))
         console.log('Form data:', formattedReceipts)
+        const response=await checkValidClearance(formattedReceipts)
+        console.log(response)
     }
 
     return(
