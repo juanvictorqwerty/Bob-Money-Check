@@ -70,6 +70,11 @@ const Login =()=>{
                 onChange={handleChange}
             />
             </div>
+            {error && (
+                <div className="p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
+                    {error}
+                </div>
+            )}
             <div className="flex items-center justify-between">
                 <div className="flex items-center">
                     <input
