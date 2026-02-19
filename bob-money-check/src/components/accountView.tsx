@@ -10,6 +10,8 @@ interface StudentData {
     email: string;
     name: string;
     matricule: string | null;
+    due_fees: number | null;
+    excess_fees: number | null;
 }
 
 const AccountView = () => {
@@ -52,6 +54,7 @@ const AccountView = () => {
                 if (!result.success) {
                     setError(result.message || "Failed to fetch student info");
                 } else if (result.data) {
+                    console.log("Data: ",result)
                     setStudentData(result.data);
                     setProfileForm({ name: result.data.name, email: result.data.email });
                     setMatriculeForm(result.data.matricule || '');
@@ -358,6 +361,24 @@ const AccountView = () => {
                                     </button>
                                 </div>
                             )}
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center border-b border-slate-200 dark:border-gray-500 pb-2 gap-2">
+                            <span className="text-slate-500 dark:text-slate-300 font-medium min-w-fit">Due Fees</span>
+                            <span className="text-slate-700 dark:text-gray-50 font-semibold">
+                                {studentData?.due_fees !== null && studentData?.due_fees !== undefined 
+                                    ? `${studentData.due_fees.toFixed(2)}` 
+                                    : "N/A"}
+                            </span>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
+                            <span className="text-slate-500 dark:text-slate-300 font-medium min-w-fit">Excess Fees</span>
+                            <span className="text-slate-700 dark:text-gray-50 font-semibold">
+                                {studentData?.excess_fees !== null && studentData?.excess_fees !== undefined 
+                                    ? `${studentData.excess_fees.toFixed(2)}` 
+                                    : "N/A"}
+                            </span>
                         </div>
                     </div>
 

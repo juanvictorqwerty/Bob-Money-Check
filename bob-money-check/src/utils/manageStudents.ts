@@ -22,7 +22,9 @@ export async function getStudentData(authToken:string) {
         .select({
             email: users.email,
             name: users.name,
-            matricule: student.matricule
+            matricule: student.matricule,
+            due_fees:student.due_sum,
+            excess_fees: student.excess_fees
         })
         .from(users)
         .leftJoin(student, eq(student.student_id, users.id))
