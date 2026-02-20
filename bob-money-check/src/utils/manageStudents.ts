@@ -1,5 +1,5 @@
 import { db } from './db';
-import { users, student, token, usedReceipts } from '../../drizzle/schema';
+import { users, student, token, usedReceipts, clearance } from '../../drizzle/schema';
 import { eq, isNull, and } from 'drizzle-orm';
 import { getSheetsClient, getSpreadsheetId } from './connectGSheet'
 
@@ -205,8 +205,46 @@ export async function CheckClearance(authToken:string, formattedReceipt: { recei
         // Compare and return success or failure
         if (totalPaid >= dueFees) {
             console.log('Clearance success: sufficient payment');
-            const excess_fees=totalPaid-dueFees
-            return {success:true,excess_fees:excess_fees};
+            const excess_fees = totalPaid - dueFees;
+            
+            // Get user ID for database operations
+            const userID = await getValidStudentID(authToken);
+            if (!userID) {
+                return { success: false, message: "User not found" };
+            }
+            
+            // Insert clearance record
+            const clearanceResult = await db.insert(clearance).values({
+                userId: userID,
+                active: true,
+            }).returning({ id: clearance.id });
+            
+            const clearanceId = clearanceResult[0].id;
+            
+            // Insert used receipts
+            for (const receipt of formattedReceipt) {
+                const convertDateForDb = (dateStr: string | null): string | null => {
+                    if (!dateStr) return null;
+                    const [day, month, year] = dateStr.split('-');
+                    return `${year}-${month}-${day} 00:00:00`;
+                };
+                
+                await db.insert(usedReceipts).values({
+                    id: receipt.receiptID,
+                    paymentDate: convertDateForDb(receipt.paymentDate) as string,
+                    userId: userID,
+                    clearanceId: clearanceId,
+                });
+            }
+            
+            // Update excess_fees in student table if > 0
+            if (excess_fees > 0) {
+                await db.update(student)
+                    .set({ excess_fees })
+                    .where(eq(student.student_id, userID));
+            }
+            
+            return { success: true, excess_fees: excess_fees };
         } else {
             console.log('Clearance failed: insufficient payment');
             return {success:false,message:"Insufficient payment"};
