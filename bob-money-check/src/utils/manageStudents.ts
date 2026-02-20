@@ -41,7 +41,7 @@ export async function CheckClearance(authToken:string, formattedReceipt: { recei
         const studentData = await getStudentData(authToken);
         if (!studentData || studentData.due_fees === null) {
             console.log('No student data or due_fees found');
-            return false;
+            return {success:false,message:"No student data found"};
         }
         
         const dueFees = Number(studentData.due_fees);
@@ -93,7 +93,7 @@ export async function CheckClearance(authToken:string, formattedReceipt: { recei
         const hasNullSum = results.some(result => result.sum === null);
         if (hasNullSum) {
             console.log('Clearance failed: some receipts have null sum');
-            return false;
+            return {success:false,message:"some receipts are not valid"};
         }
         
         // Sum all receipt amounts
@@ -106,14 +106,16 @@ export async function CheckClearance(authToken:string, formattedReceipt: { recei
         // Compare and return success or failure
         if (totalPaid >= dueFees) {
             console.log('Clearance success: sufficient payment');
-            return true;
+            const excess_fees=totalPaid-dueFees
+            return {success:true,excess_fees:excess_fees};
         } else {
             console.log('Clearance failed: insufficient payment');
-            return false;
+            return {success:false,message:"Insufficient payment"};
         }
         
+
     } catch (error) {
         console.log(error);
-        return false;
+        return {success:false};
     }
 }
