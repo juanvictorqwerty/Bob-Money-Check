@@ -267,9 +267,17 @@ export async function updateMatricule(formData: FormData) {
 }
 
 export async function checkValidClearance(formattedReceipt:any) {
-    const response=await CheckClearance(formattedReceipt)
-    if (response===null){
-        console.log('No response')
+
+    const cookieStore=await cookies();
+    const authToken=cookieStore.get("authToken")?.value
+
+    if (!authToken) {
+        return { success: false, message: "Not authenticated" };
+    }
+
+    const isCleared=await CheckClearance(authToken,formattedReceipt)
+    if (isCleared === false){
+        console.log('Clearance failed')
         return{success:false,message:"Sorry bro your fees are incomplete"}
     }
     return {success:true,message:"Congrats you are cleared"}
