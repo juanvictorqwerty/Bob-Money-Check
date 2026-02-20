@@ -37,7 +37,9 @@ const InPutReceiptInfo=()=>{
         e.preventDefault()
         const formattedReceipts = receipts.map(r => ({
             receiptID: r.receiptID,
-            paymentDate: r.paymentDate ? r.paymentDate.toISOString().split('T')[0] : null
+            paymentDate: r.paymentDate ? 
+                `${String(r.paymentDate.getDate()).padStart(2, '0')}-${String(r.paymentDate.getMonth() + 1).padStart(2, '0')}-${r.paymentDate.getFullYear()}` 
+                : null
         }))
         console.log('Form data:', formattedReceipts)
         const response=await checkValidClearance(formattedReceipts)

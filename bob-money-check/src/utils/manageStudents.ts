@@ -67,26 +67,16 @@ export async function CheckClearance(authToken:string, formattedReceipt: { recei
                 const rowDate = row[1]?.toString().trim();     // Column B
                 const receiptId = receipt.receiptID?.toString().trim();
                 
-                // Match by ID first
+                // Match by ID and date (both in DD-MM-YYYY format)
                 if (rowId !== receiptId) {
                     return false;
                 }
                 
-                // Handle date matching - sheet uses DD-MM-YYYY format
                 if (receipt.paymentDate) {
-                    const inputDate = receipt.paymentDate; // YYYY-MM-DD
-                    
-                    // Convert DD-MM-YYYY to YYYY-MM-DD
-                    const sheetParts = rowDate?.split('-');
-                    if (sheetParts && sheetParts.length === 3) {
-                        const normalizedDate = `${sheetParts[2]}-${sheetParts[1]}-${sheetParts[0]}`;
-                        return normalizedDate === inputDate;
-                    }
-                    
-                    return rowDate === inputDate;
+                    return rowDate === receipt.paymentDate;
                 }
                 
-                return true; // Match by ID only if no date provided
+                return true;
             });
 
             return {
