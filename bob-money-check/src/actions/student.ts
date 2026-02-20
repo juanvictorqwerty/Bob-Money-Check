@@ -21,13 +21,14 @@ export async function signupStudent(formData: FormData) {
         if (!token) {
             return { success: false, error: 'Failed to create student' };
         }
-
+        
         //set cookie
         const cookieStore = await cookies();
         cookieStore.set('authToken', token, {
             httpOnly: true, //prevents JS access
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
+            sameSite: 'strict',
+            maxAge:60*60*24*300 //cookie lasts 300 days (sorry iphone users)
         });
 
         return { success: true, token: token };
@@ -52,7 +53,8 @@ export async function loginStudent(formData:FormData) {
         cookieStore.set('authToken', token.jwtToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict'
+            sameSite: 'strict',
+            maxAge:60*60*24*300
         });
         console.log("Login typed")
         return { success: true, token: token.jwtToken };
