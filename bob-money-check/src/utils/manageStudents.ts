@@ -97,11 +97,13 @@ async function isReceiptsValid(formattedReceipt: { receiptID: string; paymentDat
         .where(conditions.length > 1 ? and(...conditions) : conditions[0]);
         
         console.log(response);
-        return response;
-        
+        if(response.length!==0){
+            return false
+        };
+        return true
     } catch (error) {
         console.log(error);
-        throw error; // Re-throw or handle appropriately
+        return false
     }
 }
 
@@ -130,6 +132,12 @@ async function getStudentDueFees(authToken:string) {
 
 export async function CheckClearance(authToken:string, formattedReceipt: { receiptID: string; paymentDate: string | null }[]) {
     try {
+        const validity=await isReceiptsValid(formattedReceipt)
+        console.log("Validity test: ",validity)
+        if (!validity){
+            return {success:false,message:"The receipt is already used"}
+        }
+
         // Get student data to get due_fees
         const dueFees = Number(await getStudentDueFees(authToken))
         if(!dueFees){
@@ -179,15 +187,12 @@ export async function CheckClearance(authToken:string, formattedReceipt: { recei
         
         // Debug: Log results
         console.log('Receipt results:', JSON.stringify(results));
-        
-        const validity=await isReceiptsValid(formattedReceipt)
-        console.log("Validity test: ",validity)
-        
+                
         // Return false if any receipt has a null sum
         const hasNullSum = results.some(result => result.sum === null);
         if (hasNullSum) {
             console.log('Clearance failed: some receipts have null sum');
-            return {success:false,message:"some receipts are not valid"};
+            return {success:false,message:"some receipts are not found"};
         }
         
         // Sum all receipt amounts

@@ -280,7 +280,7 @@ export async function checkValidClearance(formattedReceipt:any) {
     const response=await CheckClearance(authToken,formattedReceipt)
     if (!response.success){
         console.log('Clearance failed')
-        return{success:false,message:"Sorry bro your fees are incomplete"}
+        return{success:false,message:response.message}
     }
     return {success:true,message:"Congrats you are cleared",excess:response.excess_fees}
 }
