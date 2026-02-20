@@ -3,39 +3,61 @@ import { users, student, token, usedReceipts } from '../../drizzle/schema';
 import { eq, isNull, and } from 'drizzle-orm';
 import { getSheetsClient, getSpreadsheetId } from './connectGSheet'
 
-export async function getStudentData(authToken:string) {
+async function getValidStudentID(authToken:string) {
+    try{
+        const userIDsearchResult=await db.select({
+                                    id:token.userId
+                                })
+                                .from(token)
+                                .where(
+                                    and(
+                                        eq(token.token,authToken),
+                                        isNull(token.dateEnded)
+                                    )
+                                )
+                                .limit(1)
 
-    //get the id of the user before we start to get his data
-    const userIDResult=await db.select({id:token.userId})
-                        .from(token)
-                        .where(
-                            and(
-                                eq(token.token,authToken),
-                                isNull(token.dateEnded)
-                            )
-                        );
-    if (userIDResult.length===0){
+        if (userIDsearchResult.length===0){
+            return null
+        }
+        const userID=userIDsearchResult[0].id
+
+        return userID
+
+    }catch(error){
+        console.error(error)
         return null
     }
-    const userID=userIDResult[0].id
-
-    const studentData = await db
-        .select({
-            email: users.email,
-            name: users.name,
-            matricule: student.matricule,
-            due_fees:student.due_sum,
-            excess_fees: student.excess_fees
-        })
-        .from(users)
-        .leftJoin(student, eq(student.student_id, users.id))
-        .where(eq(users.id, userID));
-
-    return studentData[0] || null;
 }
 
+export async function getStudentData(authToken:string) {
+    try{
+        const userID=await getValidStudentID(authToken)
+        if (!userID){
+            return null
+        }
 
-export async function isReceiptsValid(formattedReceipt: { receiptID: string; paymentDate: string | null }[]) {
+        const studentData = await db
+            .select({
+                email: users.email,
+                name: users.name,
+                matricule: student.matricule,
+                due_fees:student.due_sum,
+                excess_fees: student.excess_fees
+            })
+            .from(users)
+            .leftJoin(student, eq(student.student_id, users.id))
+            .where(eq(users.id, userID));
+
+        return studentData[0];
+
+    }catch(error){
+        console.error(error)
+        return null
+    }
+}
+
+async function isReceiptsValid(formattedReceipt: { receiptID: string; paymentDate: string | null }[]) {
     const { receiptID, paymentDate } = formattedReceipt[0];
     console.log(formattedReceipt)
     try {
@@ -83,17 +105,38 @@ export async function isReceiptsValid(formattedReceipt: { receiptID: string; pay
     }
 }
 
+async function getStudentDueFees(authToken:string) {
+
+    try{
+        const studentID=await getValidStudentID(authToken);
+
+        if (!studentID){
+            return null
+        }
+
+        const response=await db.select({
+            fees:student.due_sum
+        })
+        .from(student)
+        .where(eq(student.student_id,studentID))
+
+        return response[0]?.fees;
+
+    }catch(error){
+        console.log(error)
+        return null
+    }
+}
+
 export async function CheckClearance(authToken:string, formattedReceipt: { receiptID: string; paymentDate: string | null }[]) {
     try {
         // Get student data to get due_fees
-        const studentData = await getStudentData(authToken);
-        if (!studentData || studentData.due_fees === null) {
-            console.log('No student data or due_fees found');
-            return {success:false,message:"No student data found"};
+        const dueFees = Number(await getStudentDueFees(authToken))
+        if(!dueFees){
+            console.log("Terrible error")
+            return{success:false,message:"Something terrible happened"}
         }
-        
-        const dueFees = Number(studentData.due_fees);
-        
+
         const sheets = getSheetsClient();
         const spreadsheetId = getSpreadsheetId();
         
