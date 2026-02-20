@@ -1,6 +1,6 @@
 import { db } from './db';
-import { users, student, token } from '../../drizzle/schema';
-import { eq, isNull,and } from 'drizzle-orm';
+import { users, student, token, usedReceipts } from '../../drizzle/schema';
+import { eq, isNull, and } from 'drizzle-orm';
 import { getSheetsClient, getSpreadsheetId } from './connectGSheet'
 
 export async function getStudentData(authToken:string) {
@@ -34,6 +34,54 @@ export async function getStudentData(authToken:string) {
     return studentData[0] || null;
 }
 
+
+export async function isReceiptsValid(formattedReceipt: { receiptID: string; paymentDate: string | null }[]) {
+    const { receiptID, paymentDate } = formattedReceipt[0];
+    console.log(formattedReceipt)
+    try {
+        // Convert dd-mm-yyyy to yyyy-mm-dd HH:MM:SS for timestamp comparison
+        const convertDate = (dateStr: string | null): string | null => {
+            if (!dateStr) return null;
+            const [day, month, year] = dateStr.split('-');
+            return `${year}-${month}-${day} 00:00:00`; // Returns yyyy-mm-dd HH:MM:SS
+        };
+
+        const formattedPaymentDate = convertDate(paymentDate);
+        console.log('Converted date:', formattedPaymentDate);
+        console.log('Receipt ID:', receiptID);
+        
+        // Build conditions array
+        const conditions: any[] = [eq(usedReceipts.id, receiptID)];
+        
+        if (formattedPaymentDate !== null) {
+            conditions.push(eq(usedReceipts.paymentDate, formattedPaymentDate));
+        }
+
+        // Debug: First just check if the receipt ID exists
+        const debugCheck = await db.select({
+            id: usedReceipts.id,
+            paymentDate: usedReceipts.paymentDate
+        })
+        .from(usedReceipts)
+        .where(eq(usedReceipts.id, receiptID));
+        
+        console.log('Debug - All rows with this ID:', debugCheck);
+        
+        const response = await db.select({
+            id: usedReceipts.id,
+            paymentDate: usedReceipts.paymentDate
+        })
+        .from(usedReceipts)
+        .where(conditions.length > 1 ? and(...conditions) : conditions[0]);
+        
+        console.log(response);
+        return response;
+        
+    } catch (error) {
+        console.log(error);
+        throw error; // Re-throw or handle appropriately
+    }
+}
 
 export async function CheckClearance(authToken:string, formattedReceipt: { receiptID: string; paymentDate: string | null }[]) {
     try {
@@ -88,6 +136,9 @@ export async function CheckClearance(authToken:string, formattedReceipt: { recei
         
         // Debug: Log results
         console.log('Receipt results:', JSON.stringify(results));
+        
+        const validity=await isReceiptsValid(formattedReceipt)
+        console.log("Validity test: ",validity)
         
         // Return false if any receipt has a null sum
         const hasNullSum = results.some(result => result.sum === null);

@@ -1,6 +1,6 @@
-import { pgTable, varchar, timestamp, text, integer, foreignKey, boolean, jsonb, unique, uuid } from "drizzle-orm/pg-core"
+import { pgTable, varchar, timestamp, text, integer, foreignKey, boolean, jsonb, unique, uuid, primaryKey } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
-import { table } from "console";
+
 
 export const users = pgTable("users", {
 	id: uuid().primaryKey().default(sql`gen_random_uuid()`).notNull(),
@@ -66,13 +66,26 @@ export const token = pgTable("token", {
 ]);
 
 export const usedReceipts = pgTable("used_receipts", {
-	id: uuid().primaryKey().notNull(),
+	id: varchar("id").notNull(),
+	paymentDate: timestamp("PaymentDate", { precision: 3, mode: 'string' }).notNull(),
 	userId: uuid("user_id").notNull(),
-	date: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	createdAt: timestamp("created_at", { precision: 3, mode: 'string' })
+		.default(sql`CURRENT_TIMESTAMP`)
+		.notNull(),
+	clearanceId: uuid("clearance_id").notNull(),
 }, (table) => [
+	primaryKey({ 
+		columns: [table.id, table.paymentDate],
+		name: "used_receipts_pkey" 
+	}),
 	foreignKey({
-			columns: [table.userId],
-			foreignColumns: [users.id],
-			name: "used_receipts_user_id_fkey"
-		}).onUpdate("cascade").onDelete("restrict"),
+		columns: [table.userId],
+		foreignColumns: [users.id],
+		name: "used_receipts_user_id_fkey"
+	}).onUpdate("cascade").onDelete("restrict"),
+	foreignKey({
+		columns: [table.clearanceId],
+		foreignColumns: [clearance.id],
+		name: "used_receipts_clearance_id_fkey"
+	}).onUpdate("cascade").onDelete("restrict")
 ]);
