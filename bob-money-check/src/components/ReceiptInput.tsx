@@ -79,7 +79,7 @@ const InPutReceiptInfo=()=>{
                             onChange={(date: Date | null) => updateReceipt(receipt.id, 'paymentDate', date)}
                             className={inputStyle}
                             calendarClassName="rounded-lg shadow-lg bg-gray-50 dark:bg-gray-500 mb-2"
-                            dateFormat="dd-MM-YYYY"
+                            dateFormat="dd-MM-yyyy"
                         />
                     </div>
                 ))}
