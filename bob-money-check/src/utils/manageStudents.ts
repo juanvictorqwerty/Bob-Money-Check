@@ -5,6 +5,7 @@ import { getSheetsClient, getSpreadsheetId } from './connectGSheet'
 import { PDFDocument } from 'pdf-lib';
 import nodemailer from "nodemailer"
 import fs from "fs"
+import path from "path"
 
 async function getValidStudentID(authToken:string) {
     try{
@@ -352,7 +353,7 @@ async function generatePDF(licenseId:string) {
         }
         const TXT = { id: rawData.id,date:rawData.date,studentEmail:rawData.studentEmail,studentName:rawData.studentName,studentMatricule:rawData.studentMatricule }
 
-        const templateBytes= fs.readFileSync("../../public/DemoTemplate.pdf")
+        const templateBytes = fs.readFileSync(path.join(process.cwd(), 'public', 'DemoTemplate.pdf'))
         const pdfDoc=await PDFDocument.load(templateBytes)
         const pages = pdfDoc.getPages()
         const firstPage = pages[0]
