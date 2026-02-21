@@ -1,6 +1,6 @@
 {
-  "id": "85533090-0e90-4ed4-96b4-364196ffcf02",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "d12c1032-ae05-4d13-a23e-831f65645610",
+  "prevId": "85533090-0e90-4ed4-96b4-364196ffcf02",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -70,7 +70,7 @@
         },
         "clearance_id": {
           "name": "clearance_id",
-          "type": "jsonb",
+          "type": "json",
           "primaryKey": false,
           "notNull": true
         }

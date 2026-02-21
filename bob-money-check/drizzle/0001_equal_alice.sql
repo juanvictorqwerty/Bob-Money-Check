@@ -1,0 +1,1 @@
+ALTER TABLE "clearances_Index" ALTER COLUMN "clearance_id" SET DATA TYPE json;

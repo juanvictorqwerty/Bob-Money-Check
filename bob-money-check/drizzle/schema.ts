@@ -1,4 +1,4 @@
-import { pgTable, varchar, timestamp, text, integer, foreignKey, boolean, jsonb, unique, uuid, primaryKey } from "drizzle-orm/pg-core"
+import { pgTable, varchar, timestamp, integer, foreignKey, boolean, unique, uuid, primaryKey, json } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
 
 
@@ -40,9 +40,8 @@ export const clearance = pgTable("clearance", {
 ]);
 
 export const clearancesIndex = pgTable("clearances_Index", {
-	id: uuid().primaryKey().default(sql`gen_random_uuid()`).notNull(),
-	userId: uuid("user_id").notNull(),
-	clearanceId: jsonb("clearance_id").notNull(),
+	userId: uuid("user_id").primaryKey().notNull(),
+	clearancesId: json("clearance_id").notNull(),
 }, (table) => [
 	foreignKey({
 			columns: [table.userId],

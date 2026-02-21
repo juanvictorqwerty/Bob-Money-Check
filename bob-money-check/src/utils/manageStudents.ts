@@ -1,6 +1,6 @@
 import { db } from './db';
-import { users, student, token, usedReceipts, clearance } from '../../drizzle/schema';
-import { eq, isNull, and } from 'drizzle-orm';
+import { users, student, token, usedReceipts, clearance,clearancesIndex } from '../../drizzle/schema';
+import { eq, isNull, and, sql } from 'drizzle-orm';
 import { getSheetsClient, getSpreadsheetId } from './connectGSheet'
 
 async function getValidStudentID(authToken:string) {
@@ -58,55 +58,34 @@ export async function getStudentData(authToken:string) {
 }
 
 async function isReceiptsValid(formattedReceipt: { receiptID: string; paymentDate: string | null }[]) {
-    const { receiptID, paymentDate } = formattedReceipt[0];
-    console.log(formattedReceipt)
+    const convertDate = (dateStr: string | null): string | null => {
+        if (!dateStr) return null;
+        const [day, month, year] = dateStr.split('-');
+        return `${year}-${month}-${day} 00:00:00`;
+    };
+
     try {
-        // Convert dd-mm-yyyy to yyyy-mm-dd HH:MM:SS for timestamp comparison
-        const convertDate = (dateStr: string | null): string | null => {
-            if (!dateStr) return null;
-            const [day, month, year] = dateStr.split('-');
-            return `${year}-${month}-${day} 00:00:00`; // Returns yyyy-mm-dd HH:MM:SS
-        };
+        for (const receipt of formattedReceipt) {
+            const conditions: any[] = [eq(usedReceipts.id, receipt.receiptID)];
+            const formattedDate = convertDate(receipt.paymentDate);
 
-        const formattedPaymentDate = convertDate(paymentDate);
-        console.log('Converted date:', formattedPaymentDate);
-        console.log('Receipt ID:', receiptID);
-        
-        // Build conditions array
-        const conditions: any[] = [eq(usedReceipts.id, receiptID)];
-        
-        if (formattedPaymentDate !== null) {
-            conditions.push(eq(usedReceipts.paymentDate, formattedPaymentDate));
+            if (formattedDate) {
+                conditions.push(eq(usedReceipts.paymentDate, formattedDate));
+            }
+
+            const response = await db.select({ id: usedReceipts.id })
+                .from(usedReceipts)
+                .where(conditions.length > 1 ? and(...conditions) : conditions[0])
+                .limit(1);
+
+            if (response.length !== 0) return false; // This receipt is already used
         }
-
-        // Debug: First just check if the receipt ID exists
-        const debugCheck = await db.select({
-            id: usedReceipts.id,
-            paymentDate: usedReceipts.paymentDate
-        })
-        .from(usedReceipts)
-        .where(eq(usedReceipts.id, receiptID));
-        
-        console.log('Debug - All rows with this ID:', debugCheck);
-        
-        const response = await db.select({
-            id: usedReceipts.id,
-            paymentDate: usedReceipts.paymentDate
-        })
-        .from(usedReceipts)
-        .where(conditions.length > 1 ? and(...conditions) : conditions[0]);
-        
-        console.log(response);
-        if(response.length!==0){
-            return false
-        };
-        return true
+        return true;
     } catch (error) {
         console.log(error);
-        return false
+        return false;
     }
 }
-
 async function getStudentDueFees(authToken:string) {
 
     try{
@@ -116,13 +95,16 @@ async function getStudentDueFees(authToken:string) {
             return null
         }
 
-        const response=await db.select({
-            fees:student.due_sum
+        const rawData=await db.select({
+            fees:student.due_sum,
+            excess:student.excess_fees
         })
         .from(student)
         .where(eq(student.student_id,studentID))
 
-        return response[0]?.fees;
+        const response= rawData[0]?.fees-rawData[0]?.excess;
+
+        return response
 
     }catch(error){
         console.log(error)
@@ -130,19 +112,19 @@ async function getStudentDueFees(authToken:string) {
     }
 }
 
-export async function CheckClearance(authToken:string, formattedReceipt: { receiptID: string; paymentDate: string | null }[]) {
+export async function CheckClearance(authToken: string, formattedReceipt: { receiptID: string; paymentDate: string | null }[]) {
     try {
-        const validity=await isReceiptsValid(formattedReceipt)
-        console.log("Validity test: ",validity)
-        if (!validity){
-            return {success:false,message:"The receipt is already used"}
+        const validity = await isReceiptsValid(formattedReceipt);
+        console.log("Validity test: ", validity);
+        if (!validity) {
+            return { success: false, message: "The receipt is already used" };
         }
 
         // Get student data to get due_fees
-        const dueFees = Number(await getStudentDueFees(authToken))
-        if(!dueFees){
-            console.log("Terrible error")
-            return{success:false,message:"Something terrible happened"}
+        const dueFees = Number(await getStudentDueFees(authToken));
+        if (dueFees === null || isNaN(dueFees)) {
+            console.log("Terrible error");
+            return { success: false, message: "Something terrible happened" };
         }
 
         const sheets = getSheetsClient();
@@ -154,7 +136,13 @@ export async function CheckClearance(authToken:string, formattedReceipt: { recei
             range: 'Receipts!A:C',
         });
         
-        const rows = response.data.values || [];
+        const rows = response.data.values;
+        
+        // Validate spreadsheet data
+        if (!rows || !Array.isArray(rows) || rows.length < 2) {
+            console.log('Clearance failed: no receipt data found');
+            return { success: false, message: "No receipt data found in spreadsheet" };
+        }
         
         // Skip header row (assuming first row is headers)
         const dataRows = rows.slice(1);
@@ -192,7 +180,7 @@ export async function CheckClearance(authToken:string, formattedReceipt: { recei
         const hasNullSum = results.some(result => result.sum === null);
         if (hasNullSum) {
             console.log('Clearance failed: some receipts have null sum');
-            return {success:false,message:"some receipts are not found"};
+            return { success: false, message: "some receipts are not found" };
         }
         
         // Sum all receipt amounts
@@ -213,46 +201,78 @@ export async function CheckClearance(authToken:string, formattedReceipt: { recei
                 return { success: false, message: "User not found" };
             }
             
-            // Insert clearance record
-            const clearanceResult = await db.insert(clearance).values({
-                userId: userID,
-                active: true,
-            }).returning({ id: clearance.id });
-            
-            const clearanceId = clearanceResult[0].id;
-            
-            // Insert used receipts
-            for (const receipt of formattedReceipt) {
-                const convertDateForDb = (dateStr: string | null): string | null => {
-                    if (!dateStr) return null;
-                    const [day, month, year] = dateStr.split('-');
-                    return `${year}-${month}-${day} 00:00:00`;
-                };
-                
-                await db.insert(usedReceipts).values({
-                    id: receipt.receiptID,
-                    paymentDate: convertDateForDb(receipt.paymentDate) as string,
+            // Helper function for date conversion (defined once)
+            const convertDateForDb = (dateStr: string | null): string | null => {
+                if (!dateStr) return null;
+                const parts = dateStr.split('-');
+                if (parts.length !== 3) return null;
+                const [day, month, year] = parts;
+                return `${year}-${month}-${day} 00:00:00`;
+            };
+
+            // Insert clearance record + update index in a transaction
+            const result = await db.transaction(async (tx) => {
+                // Insert clearance record
+                const clearanceResult = await tx.insert(clearance).values({
                     userId: userID,
-                    clearanceId: clearanceId,
-                });
-            }
-            
-            // Update excess_fees in student table if > 0
-            if (excess_fees > 0) {
-                await db.update(student)
-                    .set({ excess_fees })
-                    .where(eq(student.student_id, userID));
-            }
-            
+                    active: true,
+                }).returning({ id: clearance.id });
+
+                const newClearanceId = clearanceResult[0].id;
+
+                // Insert used receipts
+                for (const receipt of formattedReceipt) {
+                    const dbDate = convertDateForDb(receipt.paymentDate);
+                    if (!dbDate) {
+                        throw new Error(`Invalid date format for receipt: ${receipt.receiptID}`);
+                    }
+
+                    await tx.insert(usedReceipts).values({
+                        id: receipt.receiptID,
+                        paymentDate: dbDate,
+                        userId: userID,
+                        clearanceId: newClearanceId,
+                    });
+                }
+
+                // Update excess_fees if > 0
+                if (excess_fees > 0) {
+                    await tx.update(student)
+                        .set({ excess_fees })
+                        .where(eq(student.student_id, userID));
+                }
+
+                // Upsert clearancesIndex - read existing and update within transaction
+                // This is safe from race conditions since it's within a transaction
+                const existingIndex = await tx.select({ clearancesId: clearancesIndex.clearancesId })
+                    .from(clearancesIndex)
+                    .where(eq(clearancesIndex.userId, userID))
+                    .limit(1);
+
+                if (existingIndex.length === 0) {
+                    await tx.insert(clearancesIndex).values({
+                        userId: userID,
+                        clearancesId: [newClearanceId],
+                    });
+                } else {
+                    const currentIds = existingIndex[0].clearancesId as string[];
+                    await tx.update(clearancesIndex)
+                        .set({ clearancesId: [...currentIds, newClearanceId] })
+                        .where(eq(clearancesIndex.userId, userID));
+                }
+
+                return { clearanceId: newClearanceId };
+            });
+            console.log(result)
             return { success: true, excess_fees: excess_fees };
         } else {
             console.log('Clearance failed: insufficient payment');
-            return {success:false,message:"Insufficient payment"};
+            return { success: false, message: "Insufficient payment" };
         }
         
 
     } catch (error) {
-        console.log(error);
-        return {success:false};
+        console.error(error);
+        return { success: false, message: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 }

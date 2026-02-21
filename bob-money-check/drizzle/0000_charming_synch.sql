@@ -6,8 +6,7 @@ CREATE TABLE "clearance" (
 );
 --> statement-breakpoint
 CREATE TABLE "clearances_Index" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"user_id" uuid NOT NULL,
+	"user_id" uuid PRIMARY KEY NOT NULL,
 	"clearance_id" jsonb NOT NULL
 );
 --> statement-breakpoint
@@ -28,7 +27,7 @@ CREATE TABLE "token" (
 );
 --> statement-breakpoint
 CREATE TABLE "used_receipts" (
-	"id" uuid NOT NULL,
+	"id" varchar NOT NULL,
 	"PaymentDate" timestamp(3) NOT NULL,
 	"user_id" uuid NOT NULL,
 	"created_at" timestamp(3) DEFAULT CURRENT_TIMESTAMP NOT NULL,
