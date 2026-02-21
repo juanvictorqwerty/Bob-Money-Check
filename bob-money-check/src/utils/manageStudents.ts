@@ -276,3 +276,30 @@ export async function CheckClearance(authToken: string, formattedReceipt: { rece
         return { success: false, message: error instanceof Error ? error.message : "An unexpected error occurred" };
     }
 }
+
+export async function getStudentClearanceList(authToken:string) {
+    
+    const studentID=await getValidStudentID(authToken)
+
+    if (!studentID){
+        return {success:false,message:"This student does not exist"}
+    }
+    try{
+        const listOfClearances= await db.select({
+                                    clearanceId:clearancesIndex.clearancesId
+                                })
+                                .from(clearancesIndex)
+                                .where(eq(clearancesIndex.userId,studentID))
+        
+        // Reverse the array to get from last to first (most recent first)
+        if (listOfClearances.length > 0) {
+            const ids = listOfClearances[0].clearanceId as unknown as string[];
+            return {success:true,message:[{ clearanceId: ids.reverse() }]}
+        }
+        
+        return {success:true,message:[]}
+    }catch(error){
+        console.error(error)
+        return{success:false,message:"Internal error"}
+    }
+}
