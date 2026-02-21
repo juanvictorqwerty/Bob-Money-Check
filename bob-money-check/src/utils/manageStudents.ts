@@ -2,6 +2,8 @@ import { db } from './db';
 import { users, student, token, usedReceipts, clearance,clearancesIndex } from '../../drizzle/schema';
 import { eq, isNull, and, sql } from 'drizzle-orm';
 import { getSheetsClient, getSpreadsheetId } from './connectGSheet'
+import { PDFDocument } from 'pdf-lib';
+import fs from "fs"
 
 async function getValidStudentID(authToken:string) {
     try{
@@ -285,21 +287,67 @@ export async function getStudentClearanceList(authToken:string) {
         return {success:false,message:"This student does not exist"}
     }
     try{
+        // Get clearances from index (JSON array of IDs)
         const listOfClearances= await db.select({
                                     clearanceId:clearancesIndex.clearancesId
                                 })
                                 .from(clearancesIndex)
                                 .where(eq(clearancesIndex.userId,studentID))
         
-        // Reverse the array to get from last to first (most recent first)
-        if (listOfClearances.length > 0) {
-            const ids = listOfClearances[0].clearanceId as unknown as string[];
-            return {success:true,message:[{ clearanceId: ids.reverse() }]}
+        if (listOfClearances.length === 0) {
+            return {success:true,message:[]}
         }
         
-        return {success:true,message:[]}
+        // Extract the array of clearance IDs from JSON
+        const clearanceIds = listOfClearances[0].clearanceId as unknown as string[];
+        
+        if (!clearanceIds || clearanceIds.length === 0) {
+            return {success:true,message:[]}
+        }
+        
+        // Get dates for each clearance ID from clearance table
+        const allClearances = await db.select({
+            id: clearance.id,
+            date: clearance.date
+        })
+        .from(clearance)
+        .where(sql`${clearance.id} IN ${clearanceIds}`)
+        .orderBy(sql`${clearance.date} DESC`);
+        
+        return {success:true,message:allClearances}
     }catch(error){
         console.error(error)
         return{success:false,message:"Internal error"}
+    }
+}
+
+async function licenceInfo(licenceId:string) {
+    try {
+        const licenceData = await db.select({
+                            id:clearance.id,
+                            date:clearance.date,
+                            studentEmail:users.email,
+                            studentName:users.name,
+                            studentMatricule:student.matricule
+                        })
+                        .from(clearance)
+                        .innerJoin(users,eq(clearance.userId,users.id))
+                        .innerJoin(student,eq(users.id,student.student_id))
+                        .where(eq(clearance.id, licenceId));
+        
+        return licenceData[0] || null;
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+
+async function generatePDF() {
+    try{
+        // PDF generation logic placeholder
+        return null;
+    }catch(error){
+        console.error(error)
+        return null
     }
 }
