@@ -3,6 +3,7 @@ import { users, student, token, usedReceipts, clearance,clearancesIndex } from '
 import { eq, isNull, and, sql } from 'drizzle-orm';
 import { getSheetsClient, getSpreadsheetId } from './connectGSheet'
 import { PDFDocument } from 'pdf-lib';
+import nodemailer from "nodemailer"
 import fs from "fs"
 
 async function getValidStudentID(authToken:string) {
@@ -49,7 +50,7 @@ export async function getStudentData(authToken:string) {
             })
             .from(users)
             .leftJoin(student, eq(student.student_id, users.id))
-            .where(eq(users.id, userID));
+            .where(eq(users.id, userID as string));
 
         return studentData[0];
 
@@ -342,12 +343,90 @@ async function licenceInfo(licenceId:string) {
     }
 }
 
-async function generatePDF() {
+async function generatePDF(licenseId:string) {
     try{
-        // PDF generation logic placeholder
-        return null;
+        const rawData= await licenceInfo(licenseId)
+
+        if (rawData===null){
+            return null
+        }
+        const TXT = { id: rawData.id,date:rawData.date,studentEmail:rawData.studentEmail,studentName:rawData.studentName,studentMatricule:rawData.studentMatricule }
+
+        const templateBytes= fs.readFileSync("../../public/DemoTemplate.pdf")
+        const pdfDoc=await PDFDocument.load(templateBytes)
+        const pages = pdfDoc.getPages()
+        const firstPage = pages[0]
+
+        const textContent = `ID: ${TXT.id}\nDate: ${TXT.date}\nEmail: ${TXT.studentEmail}\nName: ${TXT.studentName}\nMatricule: ${TXT.studentMatricule}`;
+        firstPage.drawText(textContent,{
+            x:100,
+            y:500,
+            size:12
+        })
+        const pdfBytes=await pdfDoc.save()
+        
+        return pdfBytes
     }catch(error){
         console.error(error)
         return null
+    }
+}
+
+export async function sendEmail(authToken:string,licenceId:string) {
+    
+    try{
+        const studentID=await getValidStudentID(authToken)
+
+        if (studentID===null){
+            return null
+        }
+
+        const studentEmailResult = await db.select({
+                            email: users.email
+                            })
+                            .from(users)
+                            .where(
+                                eq(users.id,studentID)
+                            )
+                            .limit(1)
+
+        const studentEmail = studentEmailResult[0]?.email;
+
+        if (!studentEmail) {
+            return null;
+        }
+        
+        // Use the provided licenceId directly
+        const pdfBytes=await generatePDF(licenceId)
+
+        if (!pdfBytes) {
+            return null;
+        }
+
+        const transporter = nodemailer.createTransport({
+            service: "gmail",
+            auth: {
+            user: process.env.EMAIL_USER,
+            pass: process.env.EMAIL_PASS,
+            },
+        })
+
+        await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: studentEmail,
+            subject: "Your PDF",
+            text: "Attached is your document",
+            attachments: [
+            {
+                filename: "clearance.pdf",
+                content: Buffer.from(pdfBytes),
+            },
+            ],
+        })
+        return {success:true,message:"Email sent, get your pdf"}
+
+    }catch(error){
+        console.error(error)
+        return {success:false,message:"Email not sent"}
     }
 }

@@ -1,7 +1,7 @@
 'use server'; // ← Mark as server action
 
 import { CreateStudent, SignInStudent, changePassword, logoutAllExcept } from '@/utils/authFunction'; 
-import { CheckClearance, getStudentClearanceList, getStudentData } from '@/utils/manageStudents';
+import { CheckClearance, getStudentClearanceList, getStudentData, sendEmail } from '@/utils/manageStudents';
 import {cookies} from 'next/headers';
 import { db } from '@/utils/db';
 import { users, student, token } from '../../drizzle/schema';
@@ -297,4 +297,17 @@ export async function studentClearances() {
         return {success:false,message:response.message}
     }
     return{success:true,message:response.message}
+}
+
+export async function sendClearance(licenceId:string) {
+    const cookieStore = await cookies();
+    const authToken = cookieStore.get("authToken")?.value;
+    
+    if (!authToken) {
+        return { success: false, error: "Not authenticated" };
+    }
+
+    const response= await sendEmail(authToken,licenceId)
+    
+    return response
 }
