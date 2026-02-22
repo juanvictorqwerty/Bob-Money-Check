@@ -177,3 +177,47 @@ export async function changePassword(
     
     return { success: true };
 }
+
+export async function CreateAdmin(
+    email: string,
+    name: string,
+    password: string,
+    code: string
+) {
+    const adminKey = process.env.AdminSignUpKey;
+    console.log("code and key ", code,adminKey)
+    if (code !== adminKey) {
+        return { success: false, message: "The key is not correct" };
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    try {
+        const result = await db.transaction(async (tx) => {
+            const [newAdmin] = await tx
+                .insert(users)
+                .values({ email, name, password: hashedPassword, role: 'Admin' })
+                .returning({ id: users.id, email: users.email });
+
+            const jwtToken = jwt.sign({ email: newAdmin.email }, JWT_SECRET);
+
+            // If you don't need the inserted token record, just insert without returning
+            await tx
+                .insert(token)
+                .values({ userId: newAdmin.id, token: jwtToken });
+
+            // Or if you need the ID for something, destructure only what you use:
+            // const [{ id: tokenId }] = await tx.insert(token)...
+
+            console.log("New admin:", newAdmin);
+            
+            return { success: true, jwtToken, admin: newAdmin };
+        });
+
+        return {success:true,message:result.jwtToken};
+
+    } catch (error) {
+        console.error(error);
+        return { success: false, message: "Email already exists" };
+    }
+}

@@ -1,5 +1,5 @@
 
-export const inputStyle="outline-none border-2 rounded-md px-2 py-1 w-full focus:border-orange-300"
+export const inputStyle="outline-none rounded-md px-2 py-1 w-full border focus:border-orange-300 bg-gray-200 dark:bg-gray-600 dark:border-gray-400"
 
 export const navLinkStyle = (isActive: boolean) =>
   `rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
