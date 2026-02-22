@@ -1,5 +1,5 @@
 "use client"
-import { checkValidClearance } from "@/actions/student"
+import { checkValidClearance, useExcessOnly } from "@/actions/student"
 import { inputStyle } from "@/utils/styles"
 import { useState } from "react"
 import DatePicker from "react-datepicker"
@@ -44,6 +44,17 @@ const InPutReceiptInfo=()=>{
         console.log('Form data:', formattedReceipts)
         const response=await checkValidClearance(formattedReceipts)
         console.log(response)
+        alert(response.message)
+    }
+
+    const PayWithRemaining=async()=>{
+        const response = await useExcessOnly()
+        
+        if(!response.success){
+            console.log(response)
+            alert(response.message)
+        }
+        alert(response.message)
     }
 
     return(
@@ -99,6 +110,11 @@ const InPutReceiptInfo=()=>{
                     Ask Clearance
                 </button>
             </form>
+            <button 
+                className="block mt-2 w-full justify-center py-2.5 min-h-11 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white font-medium ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                onClick={PayWithRemaining}>
+                Pay with excess only
+            </button>
         </div>
     )
 }
