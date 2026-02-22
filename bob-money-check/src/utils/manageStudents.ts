@@ -214,12 +214,19 @@ export async function CheckClearance(authToken: string, formattedReceipt: { rece
                 return `${year}-${month}-${day} 00:00:00`;
             };
 
+            // Prepare usedReceipts data for clearance JSON column
+            const usedReceiptsData = formattedReceipt.map(receipt => ({
+                id: receipt.receiptID,
+                paymentDate: receipt.paymentDate
+            }));
+
             // Insert clearance record + update index in a transaction
             const result = await db.transaction(async (tx) => {
-                // Insert clearance record
+                // Insert clearance record with usedReceipts data
                 const clearanceResult = await tx.insert(clearance).values({
                     userId: userID,
                     active: true,
+                    usedReceipts: usedReceiptsData
                 }).returning({ id: clearance.id });
 
                 const newClearanceId = clearanceResult[0].id;
@@ -328,6 +335,7 @@ async function licenceInfo(licenceId:string) {
         const licenceData = await db.select({
                             id:clearance.id,
                             date:clearance.date,
+                            used_receipts:clearance.usedReceipts,
                             studentEmail:users.email,
                             studentName:users.name,
                             studentMatricule:student.matricule
@@ -351,7 +359,7 @@ async function generatePDF(licenseId:string) {
         if (rawData===null){
             return null
         }
-        const TXT = { id: rawData.id,date:rawData.date,studentEmail:rawData.studentEmail,studentName:rawData.studentName,studentMatricule:rawData.studentMatricule }
+        const TXT = { id: rawData.id,date:rawData.date,studentEmail:rawData.studentEmail,studentName:rawData.studentName,studentMatricule:rawData.studentMatricule,usedReceipts:rawData.used_receipts }
 
         const templateBytes = fs.readFileSync(path.join(process.cwd(), 'public', 'DemoTemplate.pdf'))
         const pdfDoc=await PDFDocument.load(templateBytes)
