@@ -1,3 +1,5 @@
+"use client"
+
 import SignUP from "@/components/SignUp"
 
 const SignUpPage=()=>{

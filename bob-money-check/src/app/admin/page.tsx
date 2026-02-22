@@ -1,3 +1,5 @@
+"use client"
+
 const AdminHome=()=>{
     return(
         <div>

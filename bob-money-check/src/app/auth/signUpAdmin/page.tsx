@@ -1,3 +1,5 @@
+"use client"
+
 import SignUPAdmin from "@/components/SignUpAdmin"
 
 const SignUpAdmin=()=>{
