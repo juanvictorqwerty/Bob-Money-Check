@@ -31,6 +31,7 @@ export const clearance = pgTable("clearance", {
 	userId: uuid("user_id").notNull(),
 	date: timestamp({ precision: 3, mode: 'string' }).default(sql`CURRENT_TIMESTAMP`).notNull(),
 	active: boolean().default(true).notNull(),
+	usedReceipts:json("used_Receipts")
 }, (table) => [
 	foreignKey({
 			columns: [table.userId],
