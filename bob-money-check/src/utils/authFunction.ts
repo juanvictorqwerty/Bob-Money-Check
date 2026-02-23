@@ -193,8 +193,8 @@ export async function CreateAdmin(
     const hashedPassword = await bcrypt.hash(password, 10);
 
     try {
-        const result = await db.transaction(async (tx) => {
-            const [newAdmin] = await tx
+        const result = await db.transaction(async (CreateAdmintx) => {
+            const [newAdmin] = await CreateAdmintx
                 .insert(users)
                 .values({ email, name, password: hashedPassword, role: 'Admin' })
                 .returning({ id: users.id, email: users.email });
@@ -202,7 +202,7 @@ export async function CreateAdmin(
             const jwtToken = jwt.sign({ email: newAdmin.email }, JWT_SECRET);
 
             // If you don't need the inserted token record, just insert without returning
-            await tx
+            await CreateAdmintx
                 .insert(token)
                 .values({ userId: newAdmin.id, token: jwtToken });
 

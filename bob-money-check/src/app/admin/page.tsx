@@ -3,7 +3,7 @@
 const AdminHome=()=>{
     return(
         <div>
-            Admin Home
+            Admin page
         </div>
     )
 }

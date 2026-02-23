@@ -509,8 +509,8 @@ export async function PayWithExcess(authToken: string) {
     }
 
     try {
-        const result = await db.transaction(async (tx) => {
-            const clearanceResult = await tx.insert(clearance).values({
+        const result = await db.transaction(async (UseExcessFees) => {
+            const clearanceResult = await UseExcessFees.insert(clearance).values({
                 userId: studentID,
                 active: true,
                 usedReceipts: "Excess fees"
@@ -521,28 +521,28 @@ export async function PayWithExcess(authToken: string) {
                 throw new Error("Failed to create clearance record");
             }
 
-            const updateResult = await tx.update(student)
+            const updateExcessBalance = await UseExcessFees.update(student)
                 .set({ excess_fees: excessCheckNumber })
                 .where(eq(student.student_id, studentID))
                 .returning({ student_id: student.student_id });
 
-            if (updateResult.length === 0) {
+            if (updateExcessBalance.length === 0) {
                 throw new Error("Failed to update student excess fees");
             }
 
-            const existingIndex = await tx.select({ clearancesId: clearancesIndex.clearancesId })
+            const existingIndex = await UseExcessFees.select({ clearancesId: clearancesIndex.clearancesId })
                 .from(clearancesIndex)
                 .where(eq(clearancesIndex.userId, studentID))
                 .limit(1);
 
             if (existingIndex.length === 0) {
-                await tx.insert(clearancesIndex).values({
+                await UseExcessFees.insert(clearancesIndex).values({
                     userId: studentID,
                     clearancesId: [newClearanceId],
                 });
             } else {
                 const currentIds = existingIndex[0].clearancesId as string[];
-                await tx.update(clearancesIndex)
+                await UseExcessFees.update(clearancesIndex)
                     .set({ clearancesId: [...currentIds, newClearanceId] })
                     .where(eq(clearancesIndex.userId, studentID));
             }
