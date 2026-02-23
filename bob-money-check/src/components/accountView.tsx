@@ -1,7 +1,7 @@
 "use client"
 
 import { getStudentInfo, updateStudentProfile, changePasswordAction, updateMatricule } from "@/actions/student";
-import { DisconnectCurrentDevice, DisconnectAllDevices } from "@/actions/accountLogout";
+import { DisconnectCurrentDevice, DisconnectAllDevices } from "@/actions/accountCommonFunctions";
 import { inputStyle } from "@/utils/styles";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";

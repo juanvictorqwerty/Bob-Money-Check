@@ -6,6 +6,22 @@ import { and, eq,ne,sql } from 'drizzle-orm';
 
 const JWT_SECRET = process.env.JWT_SECRET as string
 
+// Type for login result
+export interface LoginResult {
+    success: boolean;
+    token?: {
+        jwtToken: string;
+        insertedToken: typeof token.$inferSelect;
+    };
+    user?: {
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+    };
+    error?: string;
+}
+
 export async function CreateStudent(
     email: string,
     matricule: string,
@@ -58,40 +74,54 @@ export async function CreateStudent(
     }
 }
 
-export async function SignInStudent(email:string,password:string) {
+export async function SignIn(email: string, password: string): Promise<LoginResult> {
     // First, get the user from the database
     const result = await db.select({
         id:users.id,
         email:users.email,
         name:users.name,
-        password:users.password
+        password:users.password,
+        role:users.role
     })
     .from(users)
     .where(eq(users.email,email))
     .limit(1)
     
     if (result.length === 0) {
-        return null;
+        return { success: false, error: 'Invalid credentials' };
     }
 
     // Compare the plain password with the hashed password in the database
     const passwordMatch = await bcrypt.compare(password, result[0].password);
     
     if (!passwordMatch) {
-        return null;
+        return { success: false, error: 'Invalid credentials' };
     }
 
-    // Generate JWT token
+    const user = result[0];
+
+    // Generate JWT token with user info
     const jwtToken = jwt.sign({
-        email: email
+        email: user.email,
+        role: user.role,
+        userId: user.id
     }, JWT_SECRET);
 
     const [insertedToken] = await db.insert(token).values({
-        userId: result[0].id,
+        userId: user.id,
         token: jwtToken,
     }).returning();
 
-    return { insertedToken, jwtToken };
+    return {
+        success: true,
+        token: { jwtToken, insertedToken },
+        user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role
+        }
+    };
 }
 
 export async function logout(endtoken:string) {

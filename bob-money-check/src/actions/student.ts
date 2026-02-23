@@ -1,6 +1,6 @@
 'use server'; // ← Mark as server action
 
-import { CreateStudent, SignInStudent, changePassword, logoutAllExcept } from '@/utils/authFunction'; 
+import { CreateStudent, SignIn, changePassword, logoutAllExcept } from '@/utils/authFunction'; 
 import { CheckClearance, getStudentClearanceList, getStudentData, PayWithExcess, sendEmail } from '@/utils/manageStudents';
 import {cookies} from 'next/headers';
 import { db } from '@/utils/db';
@@ -44,20 +44,27 @@ export async function loginStudent(formData:FormData) {
 
     try{
         console.log("Login: ",formData);
-        const token = await SignInStudent(email, password);
-        if (!token) {
-            return { success: false, error: 'Invalid credentials' };
+        const result = await SignIn(email, password);
+        
+        if (!result.success || !result.token) {
+            return { success: false, error: result.error || 'Invalid credentials' };
         }
+        
         //cookie set
         const cookieStore = await cookies();
-        cookieStore.set('authToken', token.jwtToken, {
+        cookieStore.set('authToken', result.token.jwtToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge:60*60*24*300
         });
+        
         console.log("Login typed")
-        return { success: true, token: token.jwtToken };
+        return { 
+            success: true, 
+            token: result.token.jwtToken,
+            user: result.user // Include user info for role-based redirect
+        };
 
     }catch(error){
         console.error(error)

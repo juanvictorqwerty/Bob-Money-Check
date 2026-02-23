@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { navLinkStyle } from "@/utils/styles";
-import { DisconnectCurrentDevice, DisconnectAllDevices, DisconnectAllExceptOne } from "@/actions/accountLogout";
+import { DisconnectCurrentDevice, DisconnectAllDevices, DisconnectAllExceptOne } from "@/actions/accountCommonFunctions";
 
 const navLinks = [
   {name:"Account", href:"/Account"}

@@ -35,7 +35,12 @@ const Login =()=>{
 
         if (result.success){
             setSuccess(true);
-            router.push('/')
+            // Role-based redirect
+            if (result.user?.role === 'Admin') {
+                router.push('/admin');
+            } else {
+                router.push('/');
+            }
         }else{
             setError(result.error||"Oupsi")
         }
