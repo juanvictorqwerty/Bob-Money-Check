@@ -2,12 +2,13 @@ CREATE TABLE "clearance" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"user_id" uuid NOT NULL,
 	"date" timestamp(3) DEFAULT CURRENT_TIMESTAMP NOT NULL,
-	"active" boolean DEFAULT true NOT NULL
+	"active" boolean DEFAULT true NOT NULL,
+	"used_Receipts" json
 );
 --> statement-breakpoint
 CREATE TABLE "clearances_Index" (
 	"user_id" uuid PRIMARY KEY NOT NULL,
-	"clearance_id" jsonb NOT NULL
+	"clearance_id" json NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "student" (

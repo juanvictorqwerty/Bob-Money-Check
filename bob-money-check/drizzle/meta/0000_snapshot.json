@@ -1,5 +1,5 @@
 {
-  "id": "85533090-0e90-4ed4-96b4-364196ffcf02",
+  "id": "ce750e42-4295-4a45-b2a2-d9b98d1e73b8",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -34,6 +34,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": true
+        },
+        "used_Receipts": {
+          "name": "used_Receipts",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -70,7 +76,7 @@
         },
         "clearance_id": {
           "name": "clearance_id",
-          "type": "jsonb",
+          "type": "json",
           "primaryKey": false,
           "notNull": true
         }
