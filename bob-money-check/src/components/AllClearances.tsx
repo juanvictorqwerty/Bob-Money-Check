@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Fragment as ReactFragment } from "react"
-import { GetAllClearances } from "@/actions/admin"
+import { GetAllClearances, ToggleClearance } from "@/actions/admin"
 import { useTheme, themeColors } from "@/hooks/useTheme"
 
 interface ClearanceData {
@@ -21,6 +21,8 @@ const AllClearances = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState("");
@@ -63,6 +65,32 @@ const AllClearances = () => {
 
     const toggleExpand = (id: string) => {
         setExpandedRow(expandedRow === id ? null : id);
+    };
+
+    const handleToggleClearance = async (clearanceId: string, currentStatus: boolean) => {
+        setActionLoading(clearanceId);
+        setActionMessage(null);
+        
+        try {
+            const newStatus = !currentStatus;
+            const result = await ToggleClearance(clearanceId, newStatus);
+            
+            if (result.success) {
+                setActionMessage({ type: 'success', text: result.message || 'Status updated!' });
+                // Refresh the list
+                const refreshResult = await GetAllClearances();
+                if (refreshResult.success && Array.isArray(refreshResult.message)) {
+                    setClearances(refreshResult.message as ClearanceData[]);
+                }
+            } else {
+                setActionMessage({ type: 'error', text: result.message || 'Failed to update status' });
+            }
+        } catch (err) {
+            setActionMessage({ type: 'error', text: 'An error occurred' });
+            console.error(err);
+        } finally {
+            setActionLoading(null);
+        }
     };
 
     // Format used receipts for display
@@ -119,6 +147,19 @@ const AllClearances = () => {
 
     return (
         <div>
+            {/* Action Message */}
+            {actionMessage && (
+                <div style={{ 
+                    padding: "1rem", 
+                    marginBottom: "1rem", 
+                    borderRadius: "0.5rem",
+                    backgroundColor: actionMessage.type === 'success' ? "#d4edda" : "#f8d7da",
+                    color: actionMessage.type === 'success' ? "#155724" : "#721c24"
+                }}>
+                    {actionMessage.text}
+                </div>
+            )}
+
             {/* Filter Controls */}
             <div style={{ 
                 display: "flex", 
@@ -187,6 +228,7 @@ const AllClearances = () => {
                             <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Email</th>
                             <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Date</th>
                             <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Status</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Actions</th>
                             <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>ID</th>
                         </tr>
                     </thead>
@@ -220,13 +262,30 @@ const AllClearances = () => {
                                                 {clearance.active ? "Active" : "Inactive"}
                                             </span>
                                         </td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            <button
+                                                onClick={() => handleToggleClearance(clearance.id, clearance.active)}
+                                                disabled={actionLoading === clearance.id}
+                                                style={{
+                                                    padding: "0.25rem 0.5rem",
+                                                    fontSize: "0.75rem",
+                                                    backgroundColor: actionLoading === clearance.id ? "#6c757d" : (clearance.active ? "#dc3545" : "#28a745"),
+                                                    color: "white",
+                                                    border: "none",
+                                                    borderRadius: "0.25rem",
+                                                    cursor: actionLoading === clearance.id ? "not-allowed" : "pointer"
+                                                }}
+                                            >
+                                                {actionLoading === clearance.id ? "..." : (clearance.active ? "Deactivate" : "Activate")}
+                                            </button>
+                                        </td>
                                         <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: colors.textSecondary }}>
                                             {clearance.id.substring(0, 8)}...
                                         </td>
                                     </tr>
                                     {isExpanded && (
                                         <tr style={{ backgroundColor: colors.expanded }}>
-                                            <td colSpan={5} style={{ padding: "1rem" }}>
+                                            <td colSpan={6} style={{ padding: "1rem" }}>
                                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem", color: colors.text }}>
                                                     <div>
                                                         <strong>Full Name:</strong> {clearance.userName}

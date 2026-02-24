@@ -202,3 +202,31 @@ export async function SeeAllUsedReceipts(authToken:string) {
         return{success:false,message:"Internal error"}
     }
 }
+
+export async function toggleClearanceStatus(authToken:string, clearanceId:string, activate:boolean) {
+    const checkPermission= await isAdmin(authToken);
+    if (checkPermission!==true){
+        return {success:false,message:"Not authorized"}
+    };
+    try{
+        // Check if clearance exists
+        const existingClearance = await db.select()
+            .from(clearance)
+            .where(eq(clearance.id, clearanceId))
+            .limit(1);
+        
+        if(existingClearance.length === 0){
+            return {success:false,message:"Clearance not found"}
+        }
+        
+        // Update the clearance status
+        await db.update(clearance)
+            .set({ active: activate })
+            .where(eq(clearance.id, clearanceId));
+        
+        return {success:true, message: activate ? "Clearance activated" : "Clearance deactivated"}
+    }catch(error){
+        console.error(error)
+        return{success:false,message:"Internal error"}
+    }
+}
