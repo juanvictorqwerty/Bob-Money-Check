@@ -1,5 +1,6 @@
 import { pgTable, varchar, timestamp, integer, foreignKey, boolean, unique, uuid, primaryKey, json } from "drizzle-orm/pg-core"
 import { sql } from "drizzle-orm"
+import { table } from "console";
 
 
 export const users = pgTable("users", {
@@ -18,7 +19,6 @@ export const student=pgTable("student",{
 	due_sum: integer().default(365000).notNull(),
 	excess_fees:integer().default(0).notNull()
 },(table)=>[
-	unique("matricule_unique").on(table.matricule),
 	foreignKey({
 		columns: [table.student_id],
 		foreignColumns: [users.id],
@@ -63,6 +63,20 @@ export const token = pgTable("token", {
 			foreignColumns: [users.id],
 			name: "token_user_id_fkey"
 		}).onUpdate("cascade").onDelete("restrict"),
+]);
+
+export const RecoveryToken=pgTable("RecoveryToken",{
+	id:uuid().primaryKey().default(sql`gen_random_uuid()`).notNull(),
+	userId:uuid("user_id").notNull(),
+	recoveryCode: integer().notNull(),
+	created_at:timestamp("created_at",{precision:3,mode:'string'}).default(sql`CURRENT_TIMESTAMP`).notNull(),
+	isValid: boolean().default(true).notNull()
+}, (table)=>[
+	foreignKey({
+		columns:[table.userId],
+		foreignColumns:[users.id],
+		name:"recovery_token"
+	}).onUpdate("cascade").onDelete("restrict"),
 ]);
 
 export const usedReceipts = pgTable("used_receipts", {

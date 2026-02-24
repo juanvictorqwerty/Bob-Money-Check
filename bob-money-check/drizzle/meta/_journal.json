@@ -8,6 +8,13 @@
       "when": 1771936611399,
       "tag": "0000_shocking_silverclaw",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1771957024635,
+      "tag": "0001_puzzling_silver_samurai",
+      "breakpoints": true
     }
   ]
 }
