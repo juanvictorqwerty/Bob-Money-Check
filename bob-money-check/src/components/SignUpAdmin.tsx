@@ -53,7 +53,7 @@ const SignUPAdmin =()=>{
 
     return(
         <div
-        className="w-full rounded-lg shadow h-auto p-6 bg-yellow-500 relative overflow-hidden dark:bg-blue-700"
+        className="w-full rounded-lg shadow h-auto p-6 bg-blue-100 relative overflow-hidden dark:bg-blue-900"
         >
             <div className="flex flex-col justify-center items-center space-y-2">
                 <h2 className="text-2xl font-bold text-slate-700 dark:text-gray-50">Sign UP Admin</h2>
