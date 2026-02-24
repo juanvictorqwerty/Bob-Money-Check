@@ -230,3 +230,31 @@ export async function toggleClearanceStatus(authToken:string, clearanceId:string
         return{success:false,message:"Internal error"}
     }
 }
+
+export async function updateStudentDueFees(authToken:string, studentId:string, newDueFees:number) {
+    const checkPermission= await isAdmin(authToken);
+    if (checkPermission!==true){
+        return {success:false,message:"Not authorized"}
+    };
+    try{
+        // Check if student exists
+        const existingStudent = await db.select()
+            .from(student)
+            .where(eq(student.student_id, studentId))
+            .limit(1);
+        
+        if(existingStudent.length === 0){
+            return {success:false,message:"Student not found"}
+        }
+        
+        // Update the due fees
+        await db.update(student)
+            .set({ due_sum: newDueFees })
+            .where(eq(student.student_id, studentId));
+        
+        return {success:true, message: "Due fees updated successfully"}
+    }catch(error){
+        console.error(error)
+        return{success:false,message:"Internal error"}
+    }
+}

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Fragment as ReactFragment } from "react"
-import { GetAllStudents, giveExceptionalClearance } from "@/actions/admin"
+import { GetAllStudents, giveExceptionalClearance, UpdateStudentFees } from "@/actions/admin"
 import { useTheme, themeColors } from "@/hooks/useTheme"
 
 interface StudentData {
@@ -82,6 +82,40 @@ const AllStudents = () => {
                 }
             } else {
                 setActionMessage({ type: 'error', text: result.message || 'Failed to grant clearance' });
+            }
+        } catch (err) {
+            setActionMessage({ type: 'error', text: 'An error occurred' });
+            console.error(err);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
+    const handleEditDueFees = async (studentId: string, currentFees: number) => {
+        const newFees = prompt("Enter new due fees amount:", currentFees.toString());
+        if (newFees === null || newFees === "") return;
+        
+        const fees = parseInt(newFees, 10);
+        if (isNaN(fees) || fees < 0) {
+            setActionMessage({ type: 'error', text: 'Please enter a valid number' });
+            return;
+        }
+        
+        setActionLoading(studentId);
+        setActionMessage(null);
+        
+        try {
+            const result = await UpdateStudentFees(studentId, fees);
+            
+            if (result.success) {
+                setActionMessage({ type: 'success', text: 'Due fees updated successfully!' });
+                // Refresh the students list
+                const refreshResult = await GetAllStudents();
+                if (refreshResult.success && Array.isArray(refreshResult.message)) {
+                    setStudents(refreshResult.message as StudentData[]);
+                }
+            } else {
+                setActionMessage({ type: 'error', text: result.message || 'Failed to update due fees' });
             }
         } catch (err) {
             setActionMessage({ type: 'error', text: 'An error occurred' });
@@ -250,6 +284,23 @@ const AllStudents = () => {
                                                 }}
                                             >
                                                 {isLoadingThis ? "..." : "Grant Clearance"}
+                                            </button>
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }} onClick={(e) => e.stopPropagation()}>
+                                            <button
+                                                onClick={() => handleEditDueFees(student.id, student.dueFees)}
+                                                disabled={isLoadingThis}
+                                                style={{
+                                                    padding: "0.25rem 0.5rem",
+                                                    fontSize: "0.75rem",
+                                                    backgroundColor: isLoadingThis ? "#6c757d" : "#ffc107",
+                                                    color: "white",
+                                                    border: "none",
+                                                    borderRadius: "0.25rem",
+                                                    cursor: isLoadingThis ? "not-allowed" : "pointer"
+                                                }}
+                                            >
+                                                {isLoadingThis ? "..." : "Edit Fees"}
                                             </button>
                                         </td>
                                     </tr>

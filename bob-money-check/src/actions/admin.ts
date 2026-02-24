@@ -1,6 +1,6 @@
 'use server'
 
-import { GiveAdminClearance, SeeAllClearances, SeeAllUsedReceipts, seeAllStudents, toggleClearanceStatus } from "@/utils/adminFuntions";
+import { GiveAdminClearance, SeeAllClearances, SeeAllUsedReceipts, seeAllStudents, toggleClearanceStatus, updateStudentDueFees } from "@/utils/adminFuntions";
 import { CreateAdmin } from "@/utils/authFunction";
 import { cookies } from "next/headers";
 
@@ -101,6 +101,21 @@ export async function ToggleClearance(clearanceId:string, activate:boolean) {
         return { success: false, message: "Not authenticated" };
     }
     const response=await toggleClearanceStatus(authToken,clearanceId,activate)
+    if(!response.success){
+        return {success:false,message:response.message}
+    }
+    return{success:true,message:response.message}
+}
+
+export async function UpdateStudentFees(studentId:string, newDueFees:number) {
+    
+    const cookieStore=await cookies();
+    const authToken=cookieStore.get("authToken")?.value
+
+    if (!authToken) {
+        return { success: false, message: "Not authenticated" };
+    }
+    const response=await updateStudentDueFees(authToken,studentId,newDueFees)
     if(!response.success){
         return {success:false,message:response.message}
     }
