@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Fragment as ReactFragment } from "react"
 import { GetAllReceipts } from "@/actions/admin"
 
 interface UsedReceiptData {
@@ -76,6 +76,42 @@ const AllUsedReceipts = () => {
 
     const toggleExpand = (id: string) => {
         setExpandedRow(expandedRow === id ? null : id);
+    };
+
+    // Format used receipts for display
+    const formatUsedReceipts = (receipts: unknown): string => {
+        if (!receipts) return "N/A";
+        
+        // Handle if it's already an object (from Drizzle JSON parsing)
+        if (typeof receipts === 'object') {
+            if (Array.isArray(receipts) && receipts.length > 0) {
+                return receipts.map((r: unknown) => {
+                    const item = r as Record<string, unknown>;
+                    const id = String(item.id || 'N/A');
+                    const paymentDate = String(item.paymentDate || 'N/A');
+                    return `ID: ${id.substring(0, 8)}... | Date: ${paymentDate}`;
+                }).join("\n");
+            }
+            return String(receipts);
+        }
+        
+        // Handle if it's a string (might be JSON)
+        if (typeof receipts === 'string') {
+            try {
+                const parsed = JSON.parse(receipts);
+                if (Array.isArray(parsed) && parsed.length > 0) {
+                    return parsed.map((r: { id?: string; paymentDate?: string }) => 
+                        `ID: ${r.id?.substring(0, 8) || 'N/A'}... | Date: ${r.paymentDate || 'N/A'}`
+                    ).join("\n");
+                }
+                return String(parsed);
+            } catch {
+                // If not valid JSON, return as is
+                return receipts;
+            }
+        }
+        
+        return String(receipts);
     };
 
     if (loading) {
@@ -169,9 +205,8 @@ const AllUsedReceipts = () => {
                         {filteredReceipts.map((receipt) => {
                             const isExpanded = expandedRow === receipt.receiptId;
                             return (
-                                <>
+                                <ReactFragment key={receipt.receiptId}>
                                     <tr 
-                                        key={receipt.receiptId} 
                                         style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
                                         onClick={() => toggleExpand(receipt.receiptId)}
                                     >
@@ -205,7 +240,7 @@ const AllUsedReceipts = () => {
                                         </td>
                                     </tr>
                                     {isExpanded && (
-                                        <tr key={`${receipt.receiptId}-expanded`} style={{ backgroundColor: "#f0f8ff" }}>
+                                        <tr style={{ backgroundColor: "#f0f8ff" }}>
                                             <td colSpan={7} style={{ padding: "1rem" }}>
                                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
                                                     <div>
@@ -221,13 +256,13 @@ const AllUsedReceipts = () => {
                                                         <strong>Created At:</strong> {new Date(receipt.createdAt).toLocaleString()}
                                                     </div>
                                                     <div style={{ gridColumn: "1 / -1" }}>
-                                                        <strong>Clearance Used Receipts:</strong> {receipt.clearanceUsedReceipts || "N/A"}
+                                                        <strong>Clearance Used Receipts:</strong> {formatUsedReceipts(receipt.clearanceUsedReceipts)}
                                                     </div>
                                                 </div>
                                             </td>
                                         </tr>
                                     )}
-                                </>
+                                </ReactFragment>
                             );
                         })}
                     </tbody>

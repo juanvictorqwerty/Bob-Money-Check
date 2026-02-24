@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Fragment as ReactFragment } from "react"
 import { GetAllStudents } from "@/actions/admin"
 
 interface StudentData {
@@ -158,9 +158,8 @@ const AllStudents = () => {
                         {filteredStudents.map((student) => {
                             const isExpanded = expandedRow === student.id;
                             return (
-                                <>
+                                <ReactFragment key={student.id}>
                                     <tr 
-                                        key={student.id} 
                                         style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
                                         onClick={() => toggleExpand(student.id)}
                                     >
@@ -186,7 +185,7 @@ const AllStudents = () => {
                                         </td>
                                     </tr>
                                     {isExpanded && (
-                                        <tr key={`${student.id}-expanded`} style={{ backgroundColor: "#f0f8ff" }}>
+                                        <tr style={{ backgroundColor: "#f0f8ff" }}>
                                             <td colSpan={5} style={{ padding: "1rem" }}>
                                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
                                                     <div>
@@ -205,7 +204,7 @@ const AllStudents = () => {
                                             </td>
                                         </tr>
                                     )}
-                                </>
+                                </ReactFragment>
                             );
                         })}
                     </tbody>
