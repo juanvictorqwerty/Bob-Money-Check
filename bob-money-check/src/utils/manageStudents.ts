@@ -1,6 +1,6 @@
 import { db } from './db';
 import { users, student, token, usedReceipts, clearance,clearancesIndex } from '../../drizzle/schema';
-import { eq, isNull, and, sql } from 'drizzle-orm';
+import { eq, isNull, and, sql, desc } from 'drizzle-orm';
 import { getSheetsClient, getSpreadsheetId } from './connectGSheet'
 import { PDFDocument } from 'pdf-lib';
 import nodemailer from "nodemailer"
@@ -324,8 +324,9 @@ export async function getStudentClearanceList(authToken:string) {
             date: clearance.date
         })
         .from(clearance)
-        .where(sql`${clearance.id} IN ${clearanceIds}`)
-        .orderBy(sql`${clearance.date} DESC`);
+        .where(sql`${clearance.id} IN ${clearanceIds} AND ${clearance.active} = true`)
+        .orderBy(desc(clearance.date));
+
         
         return {success:true,message:allClearances}
     }catch(error){
@@ -347,7 +348,10 @@ async function licenceInfo(licenceId:string) {
                         .from(clearance)
                         .innerJoin(users,eq(clearance.userId,users.id))
                         .innerJoin(student,eq(users.id,student.student_id))
-                        .where(eq(clearance.id, licenceId));
+                        .where(
+                                and(eq(clearance.id, licenceId),
+                                    eq(clearance.active,true)
+                            ));
         
         return licenceData[0] || null;
     } catch (error) {
