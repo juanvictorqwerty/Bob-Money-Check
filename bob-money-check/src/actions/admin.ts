@@ -1,6 +1,6 @@
 'use server'
 
-import { GiveAdminClearance, SeeAllClearances, SeeAllUsedReceipts } from "@/utils/adminFuntions";
+import { GiveAdminClearance, SeeAllClearances, SeeAllUsedReceipts, seeAllStudents } from "@/utils/adminFuntions";
 import { CreateAdmin } from "@/utils/authFunction";
 import { cookies } from "next/headers";
 
@@ -71,6 +71,21 @@ export async function GetAllReceipts() {
         return { success: false, message: "Not authenticated" };
     }
     const response=await SeeAllUsedReceipts(authToken)
+    if(!response.success){
+        return {success:false,message:response.message}
+    }
+    return{success:true,message:response.message}
+}
+
+export async function GetAllStudents() {
+    
+    const cookieStore=await cookies();
+    const authToken=cookieStore.get("authToken")?.value
+
+    if (!authToken) {
+        return { success: false, message: "Not authenticated" };
+    }
+    const response=await seeAllStudents(authToken)
     if(!response.success){
         return {success:false,message:response.message}
     }
