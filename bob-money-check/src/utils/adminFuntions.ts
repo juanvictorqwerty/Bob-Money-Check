@@ -1,4 +1,4 @@
-import { eq, isNull,and } from "drizzle-orm"
+import { eq, isNull, and, desc } from "drizzle-orm"
 import { clearance, clearancesIndex, student, token, usedReceipts, users } from "../../drizzle/schema"
 import { db } from "./db"
 
@@ -154,9 +154,20 @@ export async function SeeAllClearances(authToken:string) {
         return {success:false,message:"Not authorized"}
     };
     try{
-    const clearanceList= await db.select()
-                                .from(clearance)
-        return{success:true,message:clearanceList}
+    const clearanceList= await db.select({
+            id: clearance.id,
+            userId: clearance.userId,
+            date: clearance.date,
+            active: clearance.active,
+            usedReceipts: clearance.usedReceipts,
+            userName: users.name,
+            userEmail: users.email,
+        })
+        .from(clearance)
+        .innerJoin(users, eq(clearance.userId, users.id))
+        .orderBy(desc(clearance.date));
+        
+    return{success:true,message:clearanceList}
     }catch(error){
         console.error(error)
         return{success:false,message:"Internal error"}

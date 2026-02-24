@@ -1,3 +1,5 @@
+"use client"
+
 const AllUsedReceipts=()=>{
     return(
     <div>
