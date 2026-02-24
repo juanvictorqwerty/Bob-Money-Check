@@ -17,6 +17,7 @@ const AllClearances = () => {
     const [clearances, setClearances] = useState<ClearanceData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [expandedRow, setExpandedRow] = useState<string | null>(null);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState("");
@@ -56,6 +57,10 @@ const AllClearances = () => {
         
         return matchesSearch && matchesActive;
     });
+
+    const toggleExpand = (id: string) => {
+        setExpandedRow(expandedRow === id ? null : id);
+    };
 
     if (loading) {
         return (
@@ -142,31 +147,67 @@ const AllClearances = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredClearances.map((clearance) => (
-                            <tr 
-                                key={clearance.id} 
-                                style={{ borderBottom: "1px solid #eee" }}
-                            >
-                                <td style={{ padding: "0.75rem" }}>{clearance.userName}</td>
-                                <td style={{ padding: "0.75rem" }}>{clearance.userEmail}</td>
-                                <td style={{ padding: "0.75rem" }}>
-                                    {new Date(clearance.date).toLocaleDateString()}
-                                </td>
-                                <td style={{ padding: "0.75rem" }}>
-                                    <span style={{
-                                        padding: "0.25rem 0.5rem",
-                                        borderRadius: "0.25rem",
-                                        backgroundColor: clearance.active ? "#d4edda" : "#f8d7da",
-                                        color: clearance.active ? "#155724" : "#721c24"
-                                    }}>
-                                        {clearance.active ? "Active" : "Inactive"}
-                                    </span>
-                                </td>
-                                <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
-                                    {clearance.id.substring(0, 8)}...
-                                </td>
-                            </tr>
-                        ))}
+                        {filteredClearances.map((clearance) => {
+                            const isExpanded = expandedRow === clearance.id;
+                            return (
+                                <>
+                                    <tr 
+                                        key={clearance.id} 
+                                        style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
+                                        onClick={() => toggleExpand(clearance.id)}
+                                    >
+                                        <td style={{ padding: "0.75rem" }}>
+                                            {isExpanded ? clearance.userName : clearance.userName.length > 20 ? clearance.userName.substring(0, 20) + "..." : clearance.userName}
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            {isExpanded ? clearance.userEmail : clearance.userEmail.length > 25 ? clearance.userEmail.substring(0, 25) + "..." : clearance.userEmail}
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            {new Date(clearance.date).toLocaleDateString()}
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            <span style={{
+                                                padding: "0.25rem 0.5rem",
+                                                borderRadius: "0.25rem",
+                                                backgroundColor: clearance.active ? "#d4edda" : "#f8d7da",
+                                                color: clearance.active ? "#155724" : "#721c24"
+                                            }}>
+                                                {clearance.active ? "Active" : "Inactive"}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
+                                            {clearance.id.substring(0, 8)}...
+                                        </td>
+                                    </tr>
+                                    {isExpanded && (
+                                        <tr key={`${clearance.id}-expanded`} style={{ backgroundColor: "#f0f8ff" }}>
+                                            <td colSpan={5} style={{ padding: "1rem" }}>
+                                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
+                                                    <div>
+                                                        <strong>Full Name:</strong> {clearance.userName}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Full Email:</strong> {clearance.userEmail}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Clearance ID:</strong> {clearance.id}
+                                                    </div>
+                                                    <div>
+                                                        <strong>User ID:</strong> {clearance.userId}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Created Date:</strong> {new Date(clearance.date).toLocaleString()}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Used Receipts:</strong> {clearance.usedReceipts || "N/A"}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </>
+                            );
+                        })}
                     </tbody>
                 </table>
             )}

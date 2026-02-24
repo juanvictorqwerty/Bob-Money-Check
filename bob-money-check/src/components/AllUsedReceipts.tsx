@@ -20,6 +20,7 @@ const AllUsedReceipts = () => {
     const [receipts, setReceipts] = useState<UsedReceiptData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [expandedRow, setExpandedRow] = useState<string | null>(null);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState("");
@@ -72,6 +73,10 @@ const AllUsedReceipts = () => {
         
         return matchesSearch && matchesDate;
     });
+
+    const toggleExpand = (id: string) => {
+        setExpandedRow(expandedRow === id ? null : id);
+    };
 
     if (loading) {
         return (
@@ -161,37 +166,70 @@ const AllUsedReceipts = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredReceipts.map((receipt) => (
-                            <tr 
-                                key={`${receipt.receiptId}-${receipt.paymentDate}`} 
-                                style={{ borderBottom: "1px solid #eee" }}
-                            >
-                                <td style={{ padding: "0.75rem" }}>{receipt.userName}</td>
-                                <td style={{ padding: "0.75rem" }}>{receipt.userEmail}</td>
-                                <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
-                                    {receipt.receiptId.substring(0, 8)}...
-                                </td>
-                                <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
-                                    {receipt.clearanceId.substring(0, 8)}...
-                                </td>
-                                <td style={{ padding: "0.75rem" }}>
-                                    {receipt.clearanceDate ? new Date(receipt.clearanceDate).toLocaleDateString() : 'N/A'}
-                                </td>
-                                <td style={{ padding: "0.75rem" }}>
-                                    {new Date(receipt.paymentDate).toLocaleDateString()}
-                                </td>
-                                <td style={{ padding: "0.75rem" }}>
-                                    <span style={{
-                                        padding: "0.25rem 0.5rem",
-                                        borderRadius: "0.25rem",
-                                        backgroundColor: receipt.clearanceActive ? "#d4edda" : "#f8d7da",
-                                        color: receipt.clearanceActive ? "#155724" : "#721c24"
-                                    }}>
-                                        {receipt.clearanceActive ? "Active" : "Inactive"}
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
+                        {filteredReceipts.map((receipt) => {
+                            const isExpanded = expandedRow === receipt.receiptId;
+                            return (
+                                <>
+                                    <tr 
+                                        key={receipt.receiptId} 
+                                        style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
+                                        onClick={() => toggleExpand(receipt.receiptId)}
+                                    >
+                                        <td style={{ padding: "0.75rem" }}>
+                                            {isExpanded ? receipt.userName : receipt.userName.length > 20 ? receipt.userName.substring(0, 20) + "..." : receipt.userName}
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            {isExpanded ? receipt.userEmail : receipt.userEmail.length > 25 ? receipt.userEmail.substring(0, 25) + "..." : receipt.userEmail}
+                                        </td>
+                                        <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
+                                            {receipt.receiptId.substring(0, 8)}...
+                                        </td>
+                                        <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
+                                            {receipt.clearanceId.substring(0, 8)}...
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            {receipt.clearanceDate ? new Date(receipt.clearanceDate).toLocaleDateString() : 'N/A'}
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            {new Date(receipt.paymentDate).toLocaleDateString()}
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            <span style={{
+                                                padding: "0.25rem 0.5rem",
+                                                borderRadius: "0.25rem",
+                                                backgroundColor: receipt.clearanceActive ? "#d4edda" : "#f8d7da",
+                                                color: receipt.clearanceActive ? "#155724" : "#721c24"
+                                            }}>
+                                                {receipt.clearanceActive ? "Active" : "Inactive"}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {isExpanded && (
+                                        <tr key={`${receipt.receiptId}-expanded`} style={{ backgroundColor: "#f0f8ff" }}>
+                                            <td colSpan={7} style={{ padding: "1rem" }}>
+                                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
+                                                    <div>
+                                                        <strong>Full Receipt ID:</strong> {receipt.receiptId}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Full Clearance ID:</strong> {receipt.clearanceId}
+                                                    </div>
+                                                    <div>
+                                                        <strong>User ID:</strong> {receipt.userId}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Created At:</strong> {new Date(receipt.createdAt).toLocaleString()}
+                                                    </div>
+                                                    <div style={{ gridColumn: "1 / -1" }}>
+                                                        <strong>Clearance Used Receipts:</strong> {receipt.clearanceUsedReceipts || "N/A"}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </>
+                            );
+                        })}
                     </tbody>
                 </table>
             )}

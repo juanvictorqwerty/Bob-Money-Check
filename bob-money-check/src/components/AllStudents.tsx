@@ -15,6 +15,7 @@ const AllStudents = () => {
     const [students, setStudents] = useState<StudentData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [expandedRow, setExpandedRow] = useState<string | null>(null);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState("");
@@ -55,6 +56,10 @@ const AllStudents = () => {
         
         return matchesSearch && matchesFee;
     });
+
+    const toggleExpand = (id: string) => {
+        setExpandedRow(expandedRow === id ? null : id);
+    };
 
     // Format currency
     const formatCurrency = (amount: number) => {
@@ -150,29 +155,59 @@ const AllStudents = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredStudents.map((student) => (
-                            <tr 
-                                key={student.id} 
-                                style={{ borderBottom: "1px solid #eee" }}
-                            >
-                                <td style={{ padding: "0.75rem" }}>{student.name}</td>
-                                <td style={{ padding: "0.75rem" }}>{student.email}</td>
-                                <td style={{ padding: "0.75rem" }}>{student.matricule}</td>
-                                <td style={{ padding: "0.75rem" }}>
-                                    {formatCurrency(student.dueFees)}
-                                </td>
-                                <td style={{ padding: "0.75rem" }}>
-                                    <span style={{
-                                        padding: "0.25rem 0.5rem",
-                                        borderRadius: "0.25rem",
-                                        backgroundColor: student.dueFees > 0 ? "#fff3cd" : "#d4edda",
-                                        color: student.dueFees > 0 ? "#856404" : "#155724"
-                                    }}>
-                                        {student.dueFees > 0 ? "Has Dues" : "Cleared"}
-                                    </span>
-                                </td>
-                            </tr>
-                        ))}
+                        {filteredStudents.map((student) => {
+                            const isExpanded = expandedRow === student.id;
+                            return (
+                                <>
+                                    <tr 
+                                        key={student.id} 
+                                        style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
+                                        onClick={() => toggleExpand(student.id)}
+                                    >
+                                        <td style={{ padding: "0.75rem" }}>
+                                            {isExpanded ? student.name : student.name.length > 20 ? student.name.substring(0, 20) + "..." : student.name}
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            {isExpanded ? student.email : student.email.length > 25 ? student.email.substring(0, 25) + "..." : student.email}
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }}>{student.matricule}</td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            {formatCurrency(student.dueFees)}
+                                        </td>
+                                        <td style={{ padding: "0.75rem" }}>
+                                            <span style={{
+                                                padding: "0.25rem 0.5rem",
+                                                borderRadius: "0.25rem",
+                                                backgroundColor: student.dueFees > 0 ? "#fff3cd" : "#d4edda",
+                                                color: student.dueFees > 0 ? "#856404" : "#155724"
+                                            }}>
+                                                {student.dueFees > 0 ? "Has Dues" : "Cleared"}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {isExpanded && (
+                                        <tr key={`${student.id}-expanded`} style={{ backgroundColor: "#f0f8ff" }}>
+                                            <td colSpan={5} style={{ padding: "1rem" }}>
+                                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
+                                                    <div>
+                                                        <strong>Full Name:</strong> {student.name}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Full Email:</strong> {student.email}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Student ID:</strong> {student.id}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Due Fees Amount:</strong> {formatCurrency(student.dueFees)}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </>
+                            );
+                        })}
                     </tbody>
                 </table>
             )}
