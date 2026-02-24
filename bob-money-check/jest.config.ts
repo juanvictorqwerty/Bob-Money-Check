@@ -150,6 +150,9 @@ const config: Config = {
   // The test environment that will be used for testing
   testEnvironment: "jsdom",
 
+  // Setup files to run before the test framework is installed
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.tsx'],
+
   // Map paths
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1"

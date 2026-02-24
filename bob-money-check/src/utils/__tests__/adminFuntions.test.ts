@@ -283,8 +283,8 @@ describe('adminFuntions', () => {
       const { db } = require('../db');
       (db.select as jest.Mock).mockReturnValue({
         from: jest.fn().mockReturnValue({
-          where: jest.fn({
-            limit: jest.fn().mock().mockReturnValueResolvedValue([]),
+          where: jest.fn().mockReturnValue({
+            limit: jest.fn().mockResolvedValue([]),
           }),
         }),
       });
