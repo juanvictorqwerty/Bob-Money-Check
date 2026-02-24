@@ -1,0 +1,1 @@
+ALTER TABLE "clearance" ADD COLUMN "used_Receipts" json;

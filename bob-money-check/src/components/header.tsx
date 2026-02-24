@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { navLinkStyle } from "@/utils/styles";
-import { DisconnectCurrentDevice, DisconnectAllDevices, DisconnectAllExceptOne } from "@/actions/accountLogout";
+import { DisconnectCurrentDevice, DisconnectAllDevices, DisconnectAllExceptOne } from "@/actions/accountCommonFunctions";
 
 const navLinks = [
   {name:"Account", href:"/Account"}
@@ -23,9 +23,13 @@ export default function Header() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Check if user is on auth pages or noInternet page
+  // Check if user is on auth pages, noInternet page, or admin page
   const isAuthPage = pathname === "/auth/login" || pathname === "/auth/signUPnormal";
   const isNoInternetPage = pathname === "/noInternet";
+  const isAdminPage = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  // Filter navLinks to exclude Account on admin page
+  const filteredNavLinks = isAdminPage ? [] : navLinks;
 
   useEffect(() => {
     // Check for auth token in cookies
@@ -101,7 +105,7 @@ export default function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden items-center gap-1 md:flex ml-auto">
-          {navLinks.map((link) => {
+          {filteredNavLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link
@@ -188,7 +192,7 @@ export default function Header() {
             <span className="text-xs font-bold text-white leading-tight">Bob Money Check</span>
           </Link>
 
-          {navLinks.map((link) => {
+          {filteredNavLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
               <Link

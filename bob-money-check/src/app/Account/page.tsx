@@ -1,3 +1,5 @@
+"use client"
+
 import AccountView from "@/components/accountView"
 
 const Account=()=>{

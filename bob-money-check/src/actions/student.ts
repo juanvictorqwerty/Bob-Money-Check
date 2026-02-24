@@ -1,7 +1,7 @@
 'use server'; // ← Mark as server action
 
-import { CreateStudent, SignInStudent, changePassword, logoutAllExcept } from '@/utils/authFunction'; 
-import { CheckClearance, getStudentClearanceList, getStudentData } from '@/utils/manageStudents';
+import { CreateStudent, SignIn, changePassword, logoutAllExcept } from '@/utils/authFunction'; 
+import { CheckClearance, getStudentClearanceList, getStudentData, PayWithExcess, sendEmail } from '@/utils/manageStudents';
 import {cookies} from 'next/headers';
 import { db } from '@/utils/db';
 import { users, student, token } from '../../drizzle/schema';
@@ -44,20 +44,27 @@ export async function loginStudent(formData:FormData) {
 
     try{
         console.log("Login: ",formData);
-        const token = await SignInStudent(email, password);
-        if (!token) {
-            return { success: false, error: 'Invalid credentials' };
+        const result = await SignIn(email, password);
+        
+        if (!result.success || !result.token) {
+            return { success: false, error: result.error || 'Invalid credentials' };
         }
+        
         //cookie set
         const cookieStore = await cookies();
-        cookieStore.set('authToken', token.jwtToken, {
+        cookieStore.set('authToken', result.token.jwtToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge:60*60*24*300
         });
+        
         console.log("Login typed")
-        return { success: true, token: token.jwtToken };
+        return { 
+            success: true, 
+            token: result.token.jwtToken,
+            user: result.user // Include user info for role-based redirect
+        };
 
     }catch(error){
         console.error(error)
@@ -285,6 +292,22 @@ export async function checkValidClearance(formattedReceipt:any) {
     return {success:true,message:"Congrats you are cleared",excess:response.excess_fees}
 }
 
+export async function useExcessOnly() {
+    const cookieStore=await cookies();
+    const authToken=cookieStore.get("authToken")?.value
+
+    if (!authToken) {
+        return { success: false, message: "Not authenticated" };
+    }
+
+    const response= await PayWithExcess(authToken)
+
+    if (!response?.success){
+        return {success:false,message:response?.message}
+    }
+    return {success:true,message:response.message}
+}
+
 export async function studentClearances() {
     const cookieStore=await cookies();
     const authToken=cookieStore.get("authToken")?.value
@@ -297,4 +320,17 @@ export async function studentClearances() {
         return {success:false,message:response.message}
     }
     return{success:true,message:response.message}
+}
+//Get your license by email
+export async function sendClearance(licenceId:string) {
+    const cookieStore = await cookies();
+    const authToken = cookieStore.get("authToken")?.value;
+    
+    if (!authToken) {
+        return { success: false, error: "Not authenticated" };
+    }
+
+    const response= await sendEmail(authToken,licenceId)
+    
+    return response
 }

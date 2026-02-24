@@ -1,7 +1,41 @@
 "use server"
 
-import { logout, logoutAllExcept, MassiveLogout } from "@/utils/authFunction"
+import { logout, logoutAllExcept, MassiveLogout, SignIn, LoginResult } from "@/utils/authFunction"
 import { cookies } from "next/headers";
+
+export async function Login(formData:FormData) {
+    const email=formData.get('email') as string;
+    const password=formData.get('password') as string;
+
+    try{
+        console.log("Login: ",formData);
+        const result: LoginResult = await SignIn(email, password);
+        
+        if (!result.success || !result.token) {
+            return { success: false, error: result.error || 'Invalid credentials' };
+        }
+        
+        //cookie set
+        const cookieStore = await cookies();
+        cookieStore.set('authToken', result.token.jwtToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge:60*60*24*300
+        });
+        
+        console.log("Login typed")
+        return { 
+            success: true, 
+            token: result.token.jwtToken,
+            user: result.user // Include user info for role-based redirect
+        };
+
+    }catch(error){
+        console.error(error)
+        return{success:false,error:'Error try again'}
+    }
+}
 
 export async function DisconnectCurrentDevice() {
     const cookieStore = await cookies();

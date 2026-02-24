@@ -45,8 +45,27 @@ export default async function proxy(request: NextRequest) {
 
             // Token valid → renew cookie to 300 days
             if (data.valid) {
+                // If admin, redirect to admin page regardless of the requested route
+                if (data.role === 'Admin' && isProtectedRoute && !isAuthRoute) {
+                    const redirectResponse = NextResponse.redirect(new URL('/admin', request.url));
+                    redirectResponse.cookies.set('authToken', authToken, {
+                        httpOnly: true,
+                        secure: process.env.NODE_ENV === 'production',
+                        sameSite: 'lax',
+                        maxAge: 60 * 60 * 24 * 300,
+                        path: '/',
+                    });
+                    return redirectResponse;
+                }
+
+                // Determine redirect based on role for auth routes
+                let redirectUrl = '/';
+                if (data.role === 'Admin') {
+                    redirectUrl = '/admin';
+                }
+                
                 const nextResponse = isAuthRoute
-                    ? NextResponse.redirect(new URL('/', request.url))
+                    ? NextResponse.redirect(new URL(redirectUrl, request.url))
                     : NextResponse.next();
 
                 nextResponse.cookies.set('authToken', authToken, {

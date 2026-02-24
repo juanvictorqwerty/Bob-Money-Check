@@ -15,6 +15,13 @@
       "when": 1771633589956,
       "tag": "0001_equal_alice",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771708243080,
+      "tag": "0002_loose_korvac",
+      "breakpoints": true
     }
   ]
 }
