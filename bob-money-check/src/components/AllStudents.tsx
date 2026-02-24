@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, Fragment as ReactFragment } from "react"
-import { GetAllStudents } from "@/actions/admin"
+import { GetAllStudents, giveExceptionalClearance } from "@/actions/admin"
 
 interface StudentData {
     id: string;
@@ -16,6 +16,8 @@ const AllStudents = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [expandedRow, setExpandedRow] = useState<string | null>(null);
+    const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [actionMessage, setActionMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
     
     // Filter states
     const [searchTerm, setSearchTerm] = useState("");
@@ -61,6 +63,31 @@ const AllStudents = () => {
         setExpandedRow(expandedRow === id ? null : id);
     };
 
+    const handleGiveExceptionalClearance = async (email: string) => {
+        setActionLoading(email);
+        setActionMessage(null);
+        
+        try {
+            const result = await giveExceptionalClearance(email);
+            
+            if (result.success) {
+                setActionMessage({ type: 'success', text: 'Clearance granted successfully!' });
+                // Refresh the students list
+                const refreshResult = await GetAllStudents();
+                if (refreshResult.success && Array.isArray(refreshResult.message)) {
+                    setStudents(refreshResult.message as StudentData[]);
+                }
+            } else {
+                setActionMessage({ type: 'error', text: result.message || 'Failed to grant clearance' });
+            }
+        } catch (err) {
+            setActionMessage({ type: 'error', text: 'An error occurred' });
+            console.error(err);
+        } finally {
+            setActionLoading(null);
+        }
+    };
+
     // Format currency
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-NG', {
@@ -88,6 +115,19 @@ const AllStudents = () => {
 
     return (
         <div>
+            {/* Action Message */}
+            {actionMessage && (
+                <div style={{ 
+                    padding: "1rem", 
+                    marginBottom: "1rem", 
+                    borderRadius: "0.5rem",
+                    backgroundColor: actionMessage.type === 'success' ? "#d4edda" : "#f8d7da",
+                    color: actionMessage.type === 'success' ? "#155724" : "#721c24"
+                }}>
+                    {actionMessage.text}
+                </div>
+            )}
+
             {/* Filter Controls */}
             <div style={{ 
                 display: "flex", 
@@ -152,11 +192,14 @@ const AllStudents = () => {
                             <th style={{ padding: "0.75rem", textAlign: "left" }}>Matricule</th>
                             <th style={{ padding: "0.75rem", textAlign: "left" }}>Due Fees</th>
                             <th style={{ padding: "0.75rem", textAlign: "left" }}>Status</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredStudents.map((student) => {
                             const isExpanded = expandedRow === student.id;
+                            const isLoadingThis = actionLoading === student.email;
+                            
                             return (
                                 <ReactFragment key={student.id}>
                                     <tr 
@@ -183,10 +226,27 @@ const AllStudents = () => {
                                                 {student.dueFees > 0 ? "Has Dues" : "Cleared"}
                                             </span>
                                         </td>
+                                        <td style={{ padding: "0.75rem" }} onClick={(e) => e.stopPropagation()}>
+                                            <button
+                                                onClick={() => handleGiveExceptionalClearance(student.email)}
+                                                disabled={isLoadingThis}
+                                                style={{
+                                                    padding: "0.25rem 0.5rem",
+                                                    fontSize: "0.75rem",
+                                                    backgroundColor: isLoadingThis ? "#ccc" : "#007bff",
+                                                    color: "white",
+                                                    border: "none",
+                                                    borderRadius: "0.25rem",
+                                                    cursor: isLoadingThis ? "not-allowed" : "pointer"
+                                                }}
+                                            >
+                                                {isLoadingThis ? "..." : "Grant Clearance"}
+                                            </button>
+                                        </td>
                                     </tr>
                                     {isExpanded && (
                                         <tr style={{ backgroundColor: "#f0f8ff" }}>
-                                            <td colSpan={5} style={{ padding: "1rem" }}>
+                                            <td colSpan={6} style={{ padding: "1rem" }}>
                                                 <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
                                                     <div>
                                                         <strong>Full Name:</strong> {student.name}
