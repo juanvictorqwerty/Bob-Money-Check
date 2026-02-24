@@ -180,8 +180,18 @@ export async function SeeAllUsedReceipts(authToken:string) {
         return {success:false,message:"Not authorized"}
     };
     try{
-        const usedReceiptsList=await db.select()
-                                .from(usedReceipts)
+        const usedReceiptsList=await db.select({
+            id: usedReceipts.id,
+            paymentDate: usedReceipts.paymentDate,
+            userId: usedReceipts.userId,
+            createdAt: usedReceipts.createdAt,
+            clearanceId: usedReceipts.clearanceId,
+            userName: users.name,
+            userEmail: users.email,
+        })
+        .from(usedReceipts)
+        .innerJoin(users, eq(usedReceipts.userId, users.id))
+        .orderBy(desc(usedReceipts.paymentDate));
             return {success:true,message:usedReceiptsList}
     }catch(error){
         console.error(error)
