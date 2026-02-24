@@ -4,13 +4,16 @@ import { useState, useEffect } from "react"
 import { GetAllReceipts } from "@/actions/admin"
 
 interface UsedReceiptData {
-    id: string;
+    receiptId: string;
     paymentDate: string;
     userId: string;
     createdAt: string;
     clearanceId: string;
     userName: string;
     userEmail: string;
+    clearanceDate: string;
+    clearanceActive: boolean;
+    clearanceUsedReceipts: string | null;
 }
 
 const AllUsedReceipts = () => {
@@ -47,7 +50,8 @@ const AllUsedReceipts = () => {
         const matchesSearch = 
             receipt.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             receipt.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            receipt.id.toLowerCase().includes(searchTerm.toLowerCase());
+            receipt.receiptId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            receipt.clearanceId.toLowerCase().includes(searchTerm.toLowerCase());
         
         // Date filtering
         let matchesDate = true;
@@ -100,7 +104,7 @@ const AllUsedReceipts = () => {
                 {/* Search Input */}
                 <input
                     type="text"
-                    placeholder="Search by name, email, or receipt ID..."
+                    placeholder="Search by name, email, receipt ID, or clearance ID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{
@@ -150,26 +154,41 @@ const AllUsedReceipts = () => {
                             <th style={{ padding: "0.75rem", textAlign: "left" }}>Student Name</th>
                             <th style={{ padding: "0.75rem", textAlign: "left" }}>Email</th>
                             <th style={{ padding: "0.75rem", textAlign: "left" }}>Receipt ID</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Clearance ID</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Clearance Date</th>
                             <th style={{ padding: "0.75rem", textAlign: "left" }}>Payment Date</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Created At</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Status</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredReceipts.map((receipt) => (
                             <tr 
-                                key={`${receipt.id}-${receipt.paymentDate}`} 
+                                key={`${receipt.receiptId}-${receipt.paymentDate}`} 
                                 style={{ borderBottom: "1px solid #eee" }}
                             >
                                 <td style={{ padding: "0.75rem" }}>{receipt.userName}</td>
                                 <td style={{ padding: "0.75rem" }}>{receipt.userEmail}</td>
                                 <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
-                                    {receipt.id.substring(0, 8)}...
+                                    {receipt.receiptId.substring(0, 8)}...
+                                </td>
+                                <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
+                                    {receipt.clearanceId.substring(0, 8)}...
+                                </td>
+                                <td style={{ padding: "0.75rem" }}>
+                                    {receipt.clearanceDate ? new Date(receipt.clearanceDate).toLocaleDateString() : 'N/A'}
                                 </td>
                                 <td style={{ padding: "0.75rem" }}>
                                     {new Date(receipt.paymentDate).toLocaleDateString()}
                                 </td>
                                 <td style={{ padding: "0.75rem" }}>
-                                    {new Date(receipt.createdAt).toLocaleDateString()}
+                                    <span style={{
+                                        padding: "0.25rem 0.5rem",
+                                        borderRadius: "0.25rem",
+                                        backgroundColor: receipt.clearanceActive ? "#d4edda" : "#f8d7da",
+                                        color: receipt.clearanceActive ? "#155724" : "#721c24"
+                                    }}>
+                                        {receipt.clearanceActive ? "Active" : "Inactive"}
+                                    </span>
                                 </td>
                             </tr>
                         ))}

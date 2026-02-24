@@ -181,16 +181,20 @@ export async function SeeAllUsedReceipts(authToken:string) {
     };
     try{
         const usedReceiptsList=await db.select({
-            id: usedReceipts.id,
+            receiptId: usedReceipts.id,
             paymentDate: usedReceipts.paymentDate,
             userId: usedReceipts.userId,
             createdAt: usedReceipts.createdAt,
             clearanceId: usedReceipts.clearanceId,
             userName: users.name,
             userEmail: users.email,
+            clearanceDate: clearance.date,
+            clearanceActive: clearance.active,
+            clearanceUsedReceipts: clearance.usedReceipts,
         })
         .from(usedReceipts)
         .innerJoin(users, eq(usedReceipts.userId, users.id))
+        .innerJoin(clearance, eq(usedReceipts.clearanceId, clearance.id))
         .orderBy(desc(usedReceipts.paymentDate));
             return {success:true,message:usedReceiptsList}
     }catch(error){
