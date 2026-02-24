@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Fragment as ReactFragment } from "react"
 import { GetAllClearances } from "@/actions/admin"
+import { useTheme, themeColors } from "@/hooks/useTheme"
 
 interface ClearanceData {
     id: string;
@@ -14,6 +15,8 @@ interface ClearanceData {
 }
 
 const AllClearances = () => {
+    const { isDark } = useTheme();
+    const colors = isDark ? themeColors.dark : themeColors.light;
     const [clearances, setClearances] = useState<ClearanceData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -100,7 +103,7 @@ const AllClearances = () => {
 
     if (loading) {
         return (
-            <div style={{ padding: "2rem", textAlign: "center" }}>
+            <div style={{ padding: "2rem", textAlign: "center", color: colors.text }}>
                 Loading clearances...
             </div>
         );
@@ -108,7 +111,7 @@ const AllClearances = () => {
 
     if (error) {
         return (
-            <div style={{ padding: "2rem", color: "red" }}>
+            <div style={{ padding: "2rem", color: "#dc3545" }}>
                 Error: {error}
             </div>
         );
@@ -121,7 +124,7 @@ const AllClearances = () => {
                 display: "flex", 
                 gap: "1rem", 
                 padding: "1rem", 
-                backgroundColor: "#f5f5f5",
+                backgroundColor: colors.surface,
                 borderRadius: "0.5rem",
                 marginBottom: "1rem",
                 flexWrap: "wrap"
@@ -134,10 +137,12 @@ const AllClearances = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{
                         padding: "0.5rem",
-                        border: "1px solid #ccc",
+                        border: "1px solid " + colors.border,
                         borderRadius: "0.25rem",
                         flex: "1",
-                        minWidth: "200px"
+                        minWidth: "200px",
+                        backgroundColor: colors.input,
+                        color: colors.text
                     }}
                 />
                 
@@ -147,8 +152,10 @@ const AllClearances = () => {
                     onChange={(e) => setActiveFilter(e.target.value as "all" | "active" | "inactive")}
                     style={{
                         padding: "0.5rem",
-                        border: "1px solid #ccc",
-                        borderRadius: "0.25rem"
+                        border: "1px solid " + colors.border,
+                        borderRadius: "0.25rem",
+                        backgroundColor: colors.input,
+                        color: colors.text
                     }}
                 >
                     <option value="all">All Status</option>
@@ -158,46 +165,49 @@ const AllClearances = () => {
             </div>
 
             {/* Results Count */}
-            <div style={{ marginBottom: "1rem", color: "#666" }}>
+            <div style={{ marginBottom: "1rem", color: colors.textSecondary }}>
                 Showing {filteredClearances.length} of {clearances.length} clearances
             </div>
 
             {/* Clearances Table */}
             {filteredClearances.length === 0 ? (
-                <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
+                <div style={{ padding: "2rem", textAlign: "center", color: colors.textSecondary }}>
                     No clearances found
                 </div>
             ) : (
                 <table style={{
                     width: "100%",
                     borderCollapse: "collapse",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    backgroundColor: colors.background
                 }}>
                     <thead>
-                        <tr style={{ backgroundColor: "#f9f9f9", borderBottom: "2px solid #ddd" }}>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Name</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Email</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Date</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Status</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>ID</th>
+                        <tr style={{ backgroundColor: colors.tableHeader, borderBottom: "2px solid " + colors.border }}>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Name</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Email</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Date</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Status</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>ID</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredClearances.map((clearance) => {
+                        {filteredClearances.map((clearance, index) => {
                             const isExpanded = expandedRow === clearance.id;
+                            const rowBg = index % 2 === 0 ? colors.tableRow : colors.tableRowAlt;
+                            
                             return (
                                 <ReactFragment key={clearance.id}>
                                     <tr 
-                                        style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
+                                        style={{ borderBottom: "1px solid " + colors.tableBorder, cursor: "pointer", backgroundColor: rowBg }}
                                         onClick={() => toggleExpand(clearance.id)}
                                     >
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>
                                             {isExpanded ? clearance.userName : clearance.userName.length > 20 ? clearance.userName.substring(0, 20) + "..." : clearance.userName}
                                         </td>
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>
                                             {isExpanded ? clearance.userEmail : clearance.userEmail.length > 25 ? clearance.userEmail.substring(0, 25) + "..." : clearance.userEmail}
                                         </td>
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>
                                             {new Date(clearance.date).toLocaleDateString()}
                                         </td>
                                         <td style={{ padding: "0.75rem" }}>
@@ -210,14 +220,14 @@ const AllClearances = () => {
                                                 {clearance.active ? "Active" : "Inactive"}
                                             </span>
                                         </td>
-                                        <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
+                                        <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: colors.textSecondary }}>
                                             {clearance.id.substring(0, 8)}...
                                         </td>
                                     </tr>
                                     {isExpanded && (
-                                        <tr style={{ backgroundColor: "#f0f8ff" }}>
+                                        <tr style={{ backgroundColor: colors.expanded }}>
                                             <td colSpan={5} style={{ padding: "1rem" }}>
-                                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
+                                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem", color: colors.text }}>
                                                     <div>
                                                         <strong>Full Name:</strong> {clearance.userName}
                                                     </div>

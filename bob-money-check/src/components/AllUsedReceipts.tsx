@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Fragment as ReactFragment } from "react"
 import { GetAllReceipts } from "@/actions/admin"
+import { useTheme, themeColors } from "@/hooks/useTheme"
 
 interface UsedReceiptData {
     receiptId: string;
@@ -17,6 +18,8 @@ interface UsedReceiptData {
 }
 
 const AllUsedReceipts = () => {
+    const { isDark } = useTheme();
+    const colors = isDark ? themeColors.dark : themeColors.light;
     const [receipts, setReceipts] = useState<UsedReceiptData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -116,7 +119,7 @@ const AllUsedReceipts = () => {
 
     if (loading) {
         return (
-            <div style={{ padding: "2rem", textAlign: "center" }}>
+            <div style={{ padding: "2rem", textAlign: "center", color: colors.text }}>
                 Loading receipts...
             </div>
         );
@@ -124,7 +127,7 @@ const AllUsedReceipts = () => {
 
     if (error) {
         return (
-            <div style={{ padding: "2rem", color: "red" }}>
+            <div style={{ padding: "2rem", color: "#dc3545" }}>
                 Error: {error}
             </div>
         );
@@ -137,7 +140,7 @@ const AllUsedReceipts = () => {
                 display: "flex", 
                 gap: "1rem", 
                 padding: "1rem", 
-                backgroundColor: "#f5f5f5",
+                backgroundColor: colors.surface,
                 borderRadius: "0.5rem",
                 marginBottom: "1rem",
                 flexWrap: "wrap"
@@ -150,10 +153,12 @@ const AllUsedReceipts = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{
                         padding: "0.5rem",
-                        border: "1px solid #ccc",
+                        border: "1px solid " + colors.border,
                         borderRadius: "0.25rem",
                         flex: "1",
-                        minWidth: "200px"
+                        minWidth: "200px",
+                        backgroundColor: colors.input,
+                        color: colors.text
                     }}
                 />
                 
@@ -163,8 +168,10 @@ const AllUsedReceipts = () => {
                     onChange={(e) => setDateFilter(e.target.value as "all" | "today" | "this_week" | "this_month")}
                     style={{
                         padding: "0.5rem",
-                        border: "1px solid #ccc",
-                        borderRadius: "0.25rem"
+                        border: "1px solid " + colors.border,
+                        borderRadius: "0.25rem",
+                        backgroundColor: colors.input,
+                        color: colors.text
                     }}
                 >
                     <option value="all">All Time</option>
@@ -175,57 +182,60 @@ const AllUsedReceipts = () => {
             </div>
 
             {/* Results Count */}
-            <div style={{ marginBottom: "1rem", color: "#666" }}>
+            <div style={{ marginBottom: "1rem", color: colors.textSecondary }}>
                 Showing {filteredReceipts.length} of {receipts.length} receipts
             </div>
 
             {/* Receipts Table */}
             {filteredReceipts.length === 0 ? (
-                <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
+                <div style={{ padding: "2rem", textAlign: "center", color: colors.textSecondary }}>
                     No receipts found
                 </div>
             ) : (
                 <table style={{
                     width: "100%",
                     borderCollapse: "collapse",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    backgroundColor: colors.background
                 }}>
                     <thead>
-                        <tr style={{ backgroundColor: "#f9f9f9", borderBottom: "2px solid #ddd" }}>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Student Name</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Email</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Receipt ID</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Clearance ID</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Clearance Date</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Payment Date</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Status</th>
+                        <tr style={{ backgroundColor: colors.tableHeader, borderBottom: "2px solid " + colors.border }}>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Student Name</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Email</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Receipt ID</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Clearance ID</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Clearance Date</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Payment Date</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Status</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredReceipts.map((receipt) => {
+                        {filteredReceipts.map((receipt, index) => {
                             const isExpanded = expandedRow === receipt.receiptId;
+                            const rowBg = index % 2 === 0 ? colors.tableRow : colors.tableRowAlt;
+                            
                             return (
                                 <ReactFragment key={receipt.receiptId}>
                                     <tr 
-                                        style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
+                                        style={{ borderBottom: "1px solid " + colors.tableBorder, cursor: "pointer", backgroundColor: rowBg }}
                                         onClick={() => toggleExpand(receipt.receiptId)}
                                     >
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>
                                             {isExpanded ? receipt.userName : receipt.userName.length > 20 ? receipt.userName.substring(0, 20) + "..." : receipt.userName}
                                         </td>
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>
                                             {isExpanded ? receipt.userEmail : receipt.userEmail.length > 25 ? receipt.userEmail.substring(0, 25) + "..." : receipt.userEmail}
                                         </td>
-                                        <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
+                                        <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: colors.textSecondary }}>
                                             {receipt.receiptId.substring(0, 8)}...
                                         </td>
-                                        <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: "#666" }}>
+                                        <td style={{ padding: "0.75rem", fontSize: "0.875rem", color: colors.textSecondary }}>
                                             {receipt.clearanceId.substring(0, 8)}...
                                         </td>
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>
                                             {receipt.clearanceDate ? new Date(receipt.clearanceDate).toLocaleDateString() : 'N/A'}
                                         </td>
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>
                                             {new Date(receipt.paymentDate).toLocaleDateString()}
                                         </td>
                                         <td style={{ padding: "0.75rem" }}>
@@ -240,9 +250,9 @@ const AllUsedReceipts = () => {
                                         </td>
                                     </tr>
                                     {isExpanded && (
-                                        <tr style={{ backgroundColor: "#f0f8ff" }}>
+                                        <tr style={{ backgroundColor: colors.expanded }}>
                                             <td colSpan={7} style={{ padding: "1rem" }}>
-                                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
+                                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem", color: colors.text }}>
                                                     <div>
                                                         <strong>Full Receipt ID:</strong> {receipt.receiptId}
                                                     </div>

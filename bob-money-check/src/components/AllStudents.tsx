@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Fragment as ReactFragment } from "react"
 import { GetAllStudents, giveExceptionalClearance } from "@/actions/admin"
+import { useTheme, themeColors } from "@/hooks/useTheme"
 
 interface StudentData {
     id: string;
@@ -12,6 +13,8 @@ interface StudentData {
 }
 
 const AllStudents = () => {
+    const { isDark } = useTheme();
+    const colors = isDark ? themeColors.dark : themeColors.light;
     const [students, setStudents] = useState<StudentData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -99,7 +102,7 @@ const AllStudents = () => {
 
     if (loading) {
         return (
-            <div style={{ padding: "2rem", textAlign: "center" }}>
+            <div style={{ padding: "2rem", textAlign: "center", color: colors.text }}>
                 Loading students...
             </div>
         );
@@ -107,7 +110,7 @@ const AllStudents = () => {
 
     if (error) {
         return (
-            <div style={{ padding: "2rem", color: "red" }}>
+            <div style={{ padding: "2rem", color: "#dc3545" }}>
                 Error: {error}
             </div>
         );
@@ -133,7 +136,7 @@ const AllStudents = () => {
                 display: "flex", 
                 gap: "1rem", 
                 padding: "1rem", 
-                backgroundColor: "#f5f5f5",
+                backgroundColor: colors.surface,
                 borderRadius: "0.5rem",
                 marginBottom: "1rem",
                 flexWrap: "wrap"
@@ -146,10 +149,12 @@ const AllStudents = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                     style={{
                         padding: "0.5rem",
-                        border: "1px solid #ccc",
+                        border: "1px solid " + colors.border,
                         borderRadius: "0.25rem",
                         flex: "1",
-                        minWidth: "200px"
+                        minWidth: "200px",
+                        backgroundColor: colors.input,
+                        color: colors.text
                     }}
                 />
                 
@@ -159,8 +164,10 @@ const AllStudents = () => {
                     onChange={(e) => setFeeFilter(e.target.value as "all" | "has_dues" | "no_dues")}
                     style={{
                         padding: "0.5rem",
-                        border: "1px solid #ccc",
-                        borderRadius: "0.25rem"
+                        border: "1px solid " + colors.border,
+                        borderRadius: "0.25rem",
+                        backgroundColor: colors.input,
+                        color: colors.text
                     }}
                 >
                     <option value="all">All Fees Status</option>
@@ -170,50 +177,52 @@ const AllStudents = () => {
             </div>
 
             {/* Results Count */}
-            <div style={{ marginBottom: "1rem", color: "#666" }}>
+            <div style={{ marginBottom: "1rem", color: colors.textSecondary }}>
                 Showing {filteredStudents.length} of {students.length} students
             </div>
 
             {/* Students Table */}
             {filteredStudents.length === 0 ? (
-                <div style={{ padding: "2rem", textAlign: "center", color: "#666" }}>
+                <div style={{ padding: "2rem", textAlign: "center", color: colors.textSecondary }}>
                     No students found
                 </div>
             ) : (
                 <table style={{
                     width: "100%",
                     borderCollapse: "collapse",
-                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)"
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.1)",
+                    backgroundColor: colors.background
                 }}>
                     <thead>
-                        <tr style={{ backgroundColor: "#f9f9f9", borderBottom: "2px solid #ddd" }}>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Name</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Email</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Matricule</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Due Fees</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Status</th>
-                            <th style={{ padding: "0.75rem", textAlign: "left" }}>Actions</th>
+                        <tr style={{ backgroundColor: colors.tableHeader, borderBottom: "2px solid " + colors.border }}>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Name</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Email</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Matricule</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Due Fees</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Status</th>
+                            <th style={{ padding: "0.75rem", textAlign: "left", color: colors.text }}>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredStudents.map((student) => {
+                        {filteredStudents.map((student, index) => {
                             const isExpanded = expandedRow === student.id;
                             const isLoadingThis = actionLoading === student.email;
+                            const rowBg = index % 2 === 0 ? colors.tableRow : colors.tableRowAlt;
                             
                             return (
                                 <ReactFragment key={student.id}>
                                     <tr 
-                                        style={{ borderBottom: "1px solid #eee", cursor: "pointer" }}
+                                        style={{ borderBottom: "1px solid " + colors.tableBorder, cursor: "pointer", backgroundColor: rowBg }}
                                         onClick={() => toggleExpand(student.id)}
                                     >
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>
                                             {isExpanded ? student.name : student.name.length > 20 ? student.name.substring(0, 20) + "..." : student.name}
                                         </td>
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>
                                             {isExpanded ? student.email : student.email.length > 25 ? student.email.substring(0, 25) + "..." : student.email}
                                         </td>
-                                        <td style={{ padding: "0.75rem" }}>{student.matricule}</td>
-                                        <td style={{ padding: "0.75rem" }}>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>{student.matricule}</td>
+                                        <td style={{ padding: "0.75rem", color: colors.text }}>
                                             {formatCurrency(student.dueFees)}
                                         </td>
                                         <td style={{ padding: "0.75rem" }}>
@@ -233,7 +242,7 @@ const AllStudents = () => {
                                                 style={{
                                                     padding: "0.25rem 0.5rem",
                                                     fontSize: "0.75rem",
-                                                    backgroundColor: isLoadingThis ? "#ccc" : "#007bff",
+                                                    backgroundColor: isLoadingThis ? "#6c757d" : "#007bff",
                                                     color: "white",
                                                     border: "none",
                                                     borderRadius: "0.25rem",
@@ -245,9 +254,9 @@ const AllStudents = () => {
                                         </td>
                                     </tr>
                                     {isExpanded && (
-                                        <tr style={{ backgroundColor: "#f0f8ff" }}>
+                                        <tr style={{ backgroundColor: colors.expanded }}>
                                             <td colSpan={6} style={{ padding: "1rem" }}>
-                                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem" }}>
+                                                <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "1rem", color: colors.text }}>
                                                     <div>
                                                         <strong>Full Name:</strong> {student.name}
                                                     </div>
