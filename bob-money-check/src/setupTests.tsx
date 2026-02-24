@@ -1,7 +1,9 @@
-// Jest setup file for Next.js App Router testing
+// Setup file for Jest tests
+// This file runs before each test file
+
 import '@testing-library/jest-dom';
 
-// Mock Next.js App Router
+// Mock Next.js navigation for App Router
 jest.mock('next/navigation', () => ({
   useRouter: jest.fn(() => ({
     push: jest.fn(),
@@ -11,53 +13,17 @@ jest.mock('next/navigation', () => ({
   })),
   usePathname: jest.fn(() => '/'),
   useSearchParams: jest.fn(() => new URLSearchParams()),
-  Router: {
-    push: jest.fn(),
-    replace: jest.fn(),
-    prefetch: jest.fn(),
-    back: jest.fn(),
-  },
 }));
 
-// Mock next/link
-jest.mock('next/link', () => {
-  return ({ children, href, ...props }: any) => {
-    return <a href={href} {...props}>{children}</a>;
-  };
-});
+// Only mock document and window for jsdom environment (React component tests)
+if (typeof document !== 'undefined') {
+  // Mock document.cookie
+  Object.defineProperty(document, 'cookie', {
+    writable: true,
+    value: '',
+  });
 
-// Mock document.cookie
-Object.defineProperty(document, 'cookie', {
-  writable: true,
-  value: '',
-});
-
-// Mock crypto.randomUUID
-if (typeof globalThis.crypto === 'undefined') {
-  globalThis.crypto = {} as any;
+  // Mock window.location
+  delete (window as any).location;
+  window.location = { href: '', origin: 'http://localhost' } as any;
 }
-globalThis.crypto.randomUUID = jest.fn(() => '12345678-1234-1234-1234-123456789012') as any;
-
-// Mock window.location
-delete (window as any).location;
-window.location = { href: '', origin: 'http://localhost' } as any;
-
-// Suppress specific Next.js warnings in tests
-const originalError = console.error;
-beforeAll(() => {
-  console.error = (...args: any[]) => {
-    if (
-      typeof args[0] === 'string' &&
-      (args[0].includes('Warning: React.useMemo') ||
-        args[0].includes('Warning: React.useEffect') ||
-        args[0].includes('invariant'))
-    ) {
-      return;
-    }
-    originalError.call(console, ...args);
-  };
-});
-
-afterAll(() => {
-  console.error = originalError;
-});
