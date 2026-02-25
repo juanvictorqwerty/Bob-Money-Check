@@ -90,7 +90,7 @@ const Login =()=>{
                     />
                     <span className="text-slate-500">Remember me </span>
                 </div>
-                <a className="text-blue-500 font-medium hover:underline" href="#"
+                <a className="text-blue-500 font-medium hover:underline" href="/forgotPassword"
                     >Forgot Password</a
                 >
             </div>

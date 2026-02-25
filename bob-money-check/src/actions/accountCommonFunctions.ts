@@ -1,6 +1,6 @@
 "use server"
 
-import { logout, logoutAllExcept, MassiveLogout, SignIn, LoginResult } from "@/utils/authFunction"
+import { logout, logoutAllExcept, MassiveLogout, SignIn, LoginResult, SendRecoveryCode, ResetPassword } from "@/utils/authFunction"
 import { cookies } from "next/headers";
 
 export async function Login(formData:FormData) {
@@ -99,4 +99,21 @@ export async function DisconnectAllExceptOne() {
         console.error(error);
         return { success: false, message: "Internal error" };
     }
+}
+
+export async function RequestRecoveryEmail(email:string) {
+    const result= await SendRecoveryCode(email)
+    if(!result.success){
+        return {success:false,message:result.message}
+    }
+    return{success:true,message:result.message}
+}
+
+export async function UpdatePassword(email:string,code:number,newPassword:string) {
+    const result= await ResetPassword(email,code,newPassword)
+    
+    if(!result.success){
+        return{success:false,message:result.message}
+    }
+    return{success:true,message:result.message}
 }

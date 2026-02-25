@@ -2,3 +2,5 @@
 pnpm exec tsx scripts/test-sheet.ts
 
 pnpm exec tsx test-db.ts
+
+npx drizzle-kit push --config=drizzle.config.neon.ts //specific configs
