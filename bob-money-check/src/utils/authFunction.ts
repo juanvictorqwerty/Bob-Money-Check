@@ -1,8 +1,9 @@
 import bcrypt from 'bcrypt';
 import { db } from './db';
 import jwt from 'jsonwebtoken'
-import { users, student,token } from '../../drizzle/schema';
+import { users, student,token, RecoveryToken } from '../../drizzle/schema';
 import { and, eq,ne,sql } from 'drizzle-orm';
+import nodemailer from "nodemailer"
 
 const JWT_SECRET = process.env.JWT_SECRET as string
 
@@ -250,4 +251,137 @@ export async function CreateAdmin(
         console.error(error);
         return { success: false, message: "Email already exists" };
     }
+}
+
+async function GetUserIdByEmail(email:string) {
+    const IDResult= await db.select({id:users.id})
+                                    .from(users)
+                                    .where(eq(users.email,email))
+                                    .limit(1)
+
+    if (IDResult.length===0){
+        return{success:false}
+    }
+    const userID=IDResult[0].id ;
+    return {success:true,userID: userID}
+}
+
+async function insertRecovery(userID:string,randomCode:number) {
+    
+    try{
+        const insertResult= await db.insert(RecoveryToken)
+                            .values({
+                                userId:userID,
+                                recoveryCode:randomCode
+                            }).returning({id:RecoveryToken.id})
+
+        const result=insertResult[0].id;
+        if(!result){
+            return {success:false}
+        }
+        return{success:true}
+    }catch(error){
+        return{success:false}
+    }
+}
+
+export async function SendRecoveryCode(email:string) {
+    
+    const userIDResult= await GetUserIdByEmail(email)
+    
+    if (!userIDResult.success){
+        return{success:false,message:"Wrong email"}
+    }
+    const userID=userIDResult.userID as string
+    const randomCode=Math.floor(100000 + Math.random() * 900000)
+
+    const insertCode= await insertRecovery(userID,randomCode) 
+
+    if(!insertCode.success){
+        return{success:false,message:"Code creation error"}
+    }
+
+    try{
+        const transporter=nodemailer.createTransport({
+            service:"gmail",
+            auth:{
+                user:process.env.EMAIL_USER,
+                pass:process.env.EMAIL_PASS,
+            },
+        })
+        await transporter.sendMail({
+            from:process.env.EMAIL_USER,
+            to:email,
+            subject:"Recovery Password",
+            text:`Your random code is ${randomCode}`
+        })
+        return {success:true,message:"Recovery email sent"}
+
+    }catch(error){
+        return {success:false,message:"email not found"}
+    }
+
+}
+
+async function removeAlltokens(email:string) {
+    
+    const userIDResult=await GetUserIdByEmail(email)
+    if(!userIDResult.success){
+        return{success:false}
+    }
+    const userID=userIDResult.userID as string
+    const result=await db.update(token)
+                            .set({dateEnded:sql`CURRENT_TIMESTAMP`})
+                            .where(eq(token.userId,userID))
+                            .returning()
+    return result||null
+}
+
+async function CheckCode(code:number,userID:string) {
+    const codeValidResult= await db.select({
+                            recoveryCode:RecoveryToken.recoveryCode
+                            })
+                            .from(RecoveryToken)
+                            .where(
+                                and(  //only get valid codes
+                                    eq(RecoveryToken.recoveryCode,code),
+                                    eq(RecoveryToken.userId,userID),
+                                    eq(RecoveryToken.isValid,true)
+                                )
+                            )
+                            .limit(1)
+    if(codeValidResult.length===0){
+        return false
+    }
+    return true
+}
+
+export async function ResetPassword(email:string,code:number,newPassword:string) {
+    
+    const userIDResult=await GetUserIdByEmail(email)
+    if(!userIDResult.success){
+        return{success:false,message:"user not found"}
+    }
+    const userID=userIDResult.userID as string
+
+    const hashedNewPassword= await bcrypt.hash(newPassword,10)
+    const updatePassword=await db.update(users)
+                                .set({password:hashedNewPassword})
+                                .where(eq(users.id,userID))
+                                .returning()
+    if(updatePassword===null){
+        return{success:false,message:"Could not update the password"}
+    }
+
+    const isValidCode= await CheckCode(code,userID)
+
+    if(isValidCode===false){
+        return {success:false,message:"Incorrect code, request another"}
+    }
+
+    const massiveDisconncect=await removeAlltokens(email)
+    if(massiveDisconncect===null){
+        return {success:false,message:"Could not disconnect the sessions"}
+    }
+    return {success:true,message:"Password updated, login"}
 }
