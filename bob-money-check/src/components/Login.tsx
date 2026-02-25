@@ -17,6 +17,7 @@ const Login =()=>{
 
     const [error, setError] = useState<string>('');
     const [success,setSuccess]=useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -28,6 +29,7 @@ const Login =()=>{
 
     const handleSubmit=async(e: React.SubmitEvent)=>{
         e.preventDefault();
+        setLoading(true);
         const formData = new FormData();
         formData.append('email', form.email);
         formData.append('password', form.password);
@@ -44,6 +46,7 @@ const Login =()=>{
         }else{
             setError(result.error||"Oupsi")
         }
+        setLoading(false);
     }
 
     return(
@@ -95,12 +98,13 @@ const Login =()=>{
                 >
             </div>
             <button
-            className="w-full justify-center py-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white ring-2"
+            className="w-full justify-center py-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
             id="login"
             name="login"
             type="submit"
+            disabled={loading}
             >
-            login
+            {loading ? 'Logging in...' : 'login'}
             </button>
             <p className="flex justify-center space-x-1">
             <span className="text-slate-700 dark:text-slate-50"> Have an account? </span>

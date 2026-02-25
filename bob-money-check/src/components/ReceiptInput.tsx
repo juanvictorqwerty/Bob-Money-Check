@@ -15,6 +15,8 @@ const InPutReceiptInfo=()=>{
     const [receipts, setReceipts] = useState<ReceiptEntry[]>([
         { id: '1', receiptID: '', paymentDate: new Date() }
     ])
+    const [loading, setLoading] = useState(false);
+    const [loadingExcess, setLoadingExcess] = useState(false);
 
     const addReceipt = () => {
         const newId = Date.now().toString()
@@ -35,6 +37,7 @@ const InPutReceiptInfo=()=>{
 
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault()
+        setLoading(true);
         const formattedReceipts = receipts.map(r => ({
             receiptID: r.receiptID,
             paymentDate: r.paymentDate ? 
@@ -45,9 +48,11 @@ const InPutReceiptInfo=()=>{
         const response=await checkValidClearance(formattedReceipts)
         console.log(response)
         alert(response.message)
+        setLoading(false);
     }
 
     const PayWithRemaining=async()=>{
+        setLoadingExcess(true);
         const response = await useExcessOnly()
         
         if(!response.success){
@@ -55,6 +60,7 @@ const InPutReceiptInfo=()=>{
             alert(response.message)
         }
         alert(response.message)
+        setLoadingExcess(false);
     }
 
     return(
@@ -106,14 +112,17 @@ const InPutReceiptInfo=()=>{
                 <button
                     className="block mt-2 w-full justify-center py-2.5 min-h-11 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white font-medium ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     type="submit"
+                    disabled={loading}
                 >
-                    Ask Clearance
+                    {loading ? 'Checking...' : 'Ask Clearance'}
                 </button>
             </form>
             <button 
                 className="block mt-2 w-full justify-center py-2.5 min-h-11 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white font-medium ring-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                onClick={PayWithRemaining}>
-                Pay with excess only
+                onClick={PayWithRemaining}
+                disabled={loadingExcess}
+                >
+                {loadingExcess ? 'Processing...' : 'Pay with excess only'}
             </button>
         </div>
     )
