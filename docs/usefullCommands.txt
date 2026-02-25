@@ -4,3 +4,5 @@ pnpm exec tsx scripts/test-sheet.ts
 pnpm exec tsx test-db.ts
 
 npx drizzle-kit push --config=drizzle.config.neon.ts //specific configs
+
+google sheet addess: https://docs.google.com/spreadsheets/d/1uUmKA17SLMTWOgLcXx0b7Woc7N77ZEXo-Y9nL7qOWrE/edit?usp=sharing
