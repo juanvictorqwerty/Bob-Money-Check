@@ -27,9 +27,13 @@ export default function Header() {
   const isAuthPage = pathname === "/auth/login" || pathname === "/auth/signUPnormal";
   const isNoInternetPage = pathname === "/noInternet";
   const isAdminPage = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isForgotPasswordPage = pathname === "/forgotPassword";
 
-  // Filter navLinks to exclude Account on admin page
-  const filteredNavLinks = isAdminPage ? [] : navLinks;
+  // Filter navLinks to exclude Account on admin page and forgot password page
+  const filteredNavLinks = isAdminPage || isForgotPasswordPage ? [] : navLinks;
+
+  // Hide the 3 dots menu on forgot password page
+  const showMenu = !isForgotPasswordPage;
 
   useEffect(() => {
     // Check for auth token in cookies
@@ -119,7 +123,8 @@ export default function Header() {
           })}
 
           {/* 3 Dots Menu - Always visible */}
-          <div className="relative">
+          {showMenu && (
+            <div className="relative">
               <button
                 type="button"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -157,6 +162,7 @@ export default function Header() {
                 </div>
               )}
             </div>
+          )}
         </nav>
 
         {/* Mobile Menu Button */}
@@ -205,7 +211,8 @@ export default function Header() {
             );
           })}
           {/* Mobile 3 Dots Menu - Always visible */}
-          <button
+          {showMenu && (
+            <button
             type="button"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="flex flex-col items-center gap-1 rounded-lg px-3 py-2 text-xs font-medium text-gray-600 dark:text-gray-50"
@@ -220,8 +227,8 @@ export default function Header() {
               <circle cx="12" cy="12" r="1.5" />
               <circle cx="12" cy="19" r="1.5" />
             </svg>
-            <span>More</span>
-          </button>
+            </button>
+          )}
         </nav>
 
         {/* Mobile Dropdown Overlay */}
