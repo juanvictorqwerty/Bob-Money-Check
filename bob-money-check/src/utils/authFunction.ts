@@ -351,6 +351,13 @@ async function CheckCode(code:number,userID:string) {
                             )
                             .limit(1)
     if(codeValidResult.length===0){
+        const invalidateToken= await db.update(RecoveryToken)
+                                            .set({isValid:false})
+                                            .where(eq(RecoveryToken.userId,userID))
+                                            .returning()
+        if(invalidateToken.length===0){
+            return false
+        }
         return false
     }
     return true
@@ -378,10 +385,17 @@ export async function ResetPassword(email:string,code:number,newPassword:string)
     if(isValidCode===false){
         return {success:false,message:"Incorrect code, request another"}
     }
-
+    const invalidateToken= await db.update(RecoveryToken)
+                                            .set({isValid:false})
+                                            .where(eq(RecoveryToken.userId,userID))
+                                            .returning()
+        if(invalidateToken.length===0){
+            return {success:false,message:"Security error"}
+    }
     const massiveDisconncect=await removeAlltokens(email)
     if(massiveDisconncect===null){
         return {success:false,message:"Could not disconnect the sessions"}
     }
+    
     return {success:true,message:"Password updated, login"}
 }

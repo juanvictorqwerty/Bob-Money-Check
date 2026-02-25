@@ -33,31 +33,31 @@ export default function ForgotPasswordPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
             {/* Progress indicator */}
             <div className="mb-8">
             <div className="flex items-center justify-between text-sm">
-                <div className={`flex items-center gap-2 ${step === 'request' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'request' ? 'bg-blue-100' : step === 'reset' || step === 'success' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                <div className={`flex items-center gap-2 ${step === 'request' ? 'text-blue-400 font-medium' : 'text-gray-500'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'request' ? 'bg-blue-900' : step === 'reset' || step === 'success' ? 'bg-blue-600 text-white' : 'bg-gray-700'}`}>
                     {step === 'reset' || step === 'success' ? '✓' : '1'}
                 </div>
                 <span className="hidden sm:inline">Email</span>
                 </div>
                 
-                <div className={`flex-1 h-0.5 mx-4 ${step === 'reset' || step === 'success' ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                <div className={`flex-1 h-0.5 mx-4 ${step === 'reset' || step === 'success' ? 'bg-blue-600' : 'bg-gray-700'}`} />
                 
-                <div className={`flex items-center gap-2 ${step === 'reset' ? 'text-blue-600 font-medium' : step === 'success' ? 'text-gray-400' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'reset' ? 'bg-blue-100' : step === 'success' ? 'bg-blue-600 text-white' : 'bg-gray-200'}`}>
+                <div className={`flex items-center gap-2 ${step === 'reset' ? 'text-blue-400 font-medium' : step === 'success' ? 'text-gray-500' : 'text-gray-500'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'reset' ? 'bg-blue-900' : step === 'success' ? 'bg-blue-600 text-white' : 'bg-gray-700'}`}>
                     {step === 'success' ? '✓' : '2'}
                 </div>
                 <span className="hidden sm:inline">Reset</span>
                 </div>
 
-                <div className={`flex-1 h-0.5 mx-4 ${step === 'success' ? 'bg-blue-600' : 'bg-gray-200'}`} />
+                <div className={`flex-1 h-0.5 mx-4 ${step === 'success' ? 'bg-blue-600' : 'bg-gray-700'}`} />
                 
-                <div className={`flex items-center gap-2 ${step === 'success' ? 'text-blue-600 font-medium' : 'text-gray-400'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'success' ? 'bg-blue-100' : 'bg-gray-200'}`}>
+                <div className={`flex items-center gap-2 ${step === 'success' ? 'text-blue-400 font-medium' : 'text-gray-500'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step === 'success' ? 'bg-blue-900' : 'bg-gray-700'}`}>
                     3
                 </div>
                 <span className="hidden sm:inline">Done</span>

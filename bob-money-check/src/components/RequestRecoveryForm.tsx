@@ -34,9 +34,9 @@ export function RequestRecoveryForm({ onEmailSent }: RequestRecoveryFormProps) {
     };
 
     return (
-        <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
-        <h2 className="text-2xl font-bold mb-2 text-gray-800">Reset Password</h2>
-        <p className="text-gray-600 mb-6">
+        <div className="w-full max-w-md mx-auto p-6 bg-gray-800 rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-2 text-white">Reset Password</h2>
+        <p className="text-gray-300 mb-6">
             Enter your email address and we'll send you a recovery code.
         </p>
 
@@ -44,7 +44,7 @@ export function RequestRecoveryForm({ onEmailSent }: RequestRecoveryFormProps) {
             <div>
             <label 
                 htmlFor="email" 
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-300 mb-1"
             >
                 Email Address
             </label>
@@ -54,14 +54,14 @@ export function RequestRecoveryForm({ onEmailSent }: RequestRecoveryFormProps) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-700 text-white placeholder-gray-400"
                 placeholder="you@example.com"
             />
             </div>
 
             {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+            <div className="p-3 bg-red-900/30 border border-red-800 rounded-lg">
+                <p className="text-sm text-red-400">{error}</p>
             </div>
             )}
 

@@ -51,24 +51,24 @@ export function ResetPasswordForm({ email, onSuccess, onBack }: ResetPasswordFor
     };
 
     return (
-        <div className="w-full max-w-md mx-auto p-6 bg-white rounded-lg shadow-md">
+        <div className="w-full max-w-md mx-auto p-6 bg-gray-800 rounded-lg shadow-md">
         <button
             onClick={onBack}
-            className="text-sm text-gray-500 hover:text-gray-700 mb-4 flex items-center gap-1 transition"
+            className="text-sm text-gray-400 hover:text-gray-200 mb-4 flex items-center gap-1 transition"
         >
             ← Back to email
         </button>
 
-        <h2 className="text-2xl font-bold mb-2 text-gray-800">Enter Recovery Code</h2>
-        <p className="text-gray-600 mb-6">
-            We sent a code to <span className="font-medium text-gray-800">{email}</span>
+        <h2 className="text-2xl font-bold mb-2 text-white">Enter Recovery Code</h2>
+        <p className="text-gray-300 mb-6">
+            We sent a code to <span className="font-medium text-white">{email}</span>
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
             <div>
             <label 
                 htmlFor="code" 
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-300 mb-1"
             >
                 Recovery Code
             </label>
@@ -79,7 +79,7 @@ export function ResetPasswordForm({ email, onSuccess, onBack }: ResetPasswordFor
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 required
                 maxLength={6}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-center text-2xl tracking-widest"
+                className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition text-center text-2xl tracking-widest bg-gray-700 text-white placeholder-gray-400"
                 placeholder="000000"
             />
             </div>
@@ -87,7 +87,7 @@ export function ResetPasswordForm({ email, onSuccess, onBack }: ResetPasswordFor
             <div>
             <label 
                 htmlFor="newPassword" 
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-300 mb-1"
             >
                 New Password
             </label>
@@ -99,13 +99,13 @@ export function ResetPasswordForm({ email, onSuccess, onBack }: ResetPasswordFor
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={8}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10"
+                className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition pr-10 bg-gray-700 text-white placeholder-gray-400"
                 placeholder="••••••••"
                 />
                 <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200"
                 >
                 {showPassword ? '🙈' : '👁️'}
                 </button>
@@ -115,7 +115,7 @@ export function ResetPasswordForm({ email, onSuccess, onBack }: ResetPasswordFor
             <div>
             <label 
                 htmlFor="confirmPassword" 
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-gray-300 mb-1"
             >
                 Confirm New Password
             </label>
@@ -125,14 +125,14 @@ export function ResetPasswordForm({ email, onSuccess, onBack }: ResetPasswordFor
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
+                className="w-full px-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition bg-gray-700 text-white placeholder-gray-400"
                 placeholder="••••••••"
             />
             </div>
 
             {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-sm text-red-600">{error}</p>
+            <div className="p-3 bg-red-900/30 border border-red-800 rounded-lg">
+                <p className="text-sm text-red-400">{error}</p>
             </div>
             )}
 
