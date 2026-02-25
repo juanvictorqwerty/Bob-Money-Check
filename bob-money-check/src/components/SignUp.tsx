@@ -17,6 +17,7 @@ const SignUP =()=>{
     
     const [error, setError] = useState<string>('');
     const [success,setSuccess]=useState(false);
+    const [loading, setLoading] = useState(false);
     
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -28,8 +29,10 @@ const SignUP =()=>{
 
     const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
+    setLoading(true);
     if (form.password !== form.confirmPassword) {
     setError('Passwords do not match');
+    setLoading(false);
     return;
     }
     
@@ -47,6 +50,7 @@ const SignUP =()=>{
     }else{
         setError(result.error||"Oupsi!")
     }
+    setLoading(false);
     console.log('Basic Form:', form);
     console.log(result)
     };
@@ -128,12 +132,13 @@ const SignUP =()=>{
                     <p className="text-red-500 text-sm text-center">{error}</p>
                 )}
                 <button
-                className="w-full justify-center py-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white ring-2"
+                className="w-full justify-center py-1 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-md text-white ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
                 id="login"
                 name="login"
                 type="submit"
+                disabled={loading}
                 >
-                Sign up
+                {loading ? 'Signing up...' : 'Sign up'}
                 </button>
                 <p className="flex justify-center">
                 <span className="text-slate-700 dark:text-gray-50"> Have an account?  </span>
