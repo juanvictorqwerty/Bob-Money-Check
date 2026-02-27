@@ -49,11 +49,8 @@ const SignUP =()=>{
     const handleSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault();
         
-        // Check network status first
-        if (!navigator.onLine) {
-            setError('No internet connection. Please check your network and try again.');
-            return;
-        }
+        // Note: navigator.onLine can be unreliable on mobile, so we don't block based on it
+        // Instead, we let the request try and handle errors properly
 
         setLoading(true);
         setError('');
