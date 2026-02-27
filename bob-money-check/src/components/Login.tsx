@@ -73,12 +73,15 @@ const Login =()=>{
 
             if (result.success){
                 setSuccess(true);
-                // Role-based redirect
-                if (result.user?.role === 'Admin') {
-                    router.push('/admin');
-                } else {
-                    router.push('/');
-                }
+                // Use window.location for more reliable redirect
+                // Small delay to ensure cookie is set
+                setTimeout(() => {
+                    if (result.user?.role === 'Admin') {
+                        window.location.href = '/admin';
+                    } else {
+                        window.location.href = '/';
+                    }
+                }, 100);
             } else {
                 // Handle specific error types
                 const errorMsg = result.error || '';

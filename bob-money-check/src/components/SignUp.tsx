@@ -81,7 +81,11 @@ const SignUP =()=>{
 
             if (result.success){
                 setSuccess(true);
-                router.push('/')
+                // Use window.location for more reliable redirect
+                // Small delay to ensure cookie is set
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 100);
             } else {
                 // Handle specific error types
                 const errorMsg = result.error || '';
