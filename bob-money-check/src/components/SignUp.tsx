@@ -71,6 +71,8 @@ const SignUP =()=>{
                         id="email"
                         name="email"
                         type="email"
+                        inputMode="email"
+                        autoComplete="email"
                         onChange={handleChange}
                     />
                 </div>
@@ -81,6 +83,8 @@ const SignUP =()=>{
                         id="name"
                         name="name"
                         type="text"
+                        inputMode="text"
+                        autoComplete="name"
                         onChange={handleChange}
                     />
                 </div>
@@ -91,6 +95,8 @@ const SignUP =()=>{
                     id="matricule"
                     name="matricule"
                     type="text"
+                    inputMode="text"
+                    autoComplete="off"
                     onChange={handleChange}
                 />
                 </div>
@@ -101,6 +107,7 @@ const SignUP =()=>{
                     id="password"
                     name="password"
                     type="password"
+                    autoComplete="new-password"
                     onChange={handleChange}
                 />
                 </div>
@@ -111,6 +118,7 @@ const SignUP =()=>{
                     id="confirmPassword"
                     name="confirmPassword"
                     type="password"
+                    autoComplete="new-password"
                     onChange={handleChange}
                 />
                 </div>

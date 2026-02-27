@@ -23,7 +23,7 @@ export async function SignUpAdmin(formData:FormData) {
     cookieStore.set('authToken', response.message, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 60 * 60 * 24 * 60, 
         path: '/',
     });

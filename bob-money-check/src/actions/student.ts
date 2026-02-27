@@ -27,7 +27,7 @@ export async function signupStudent(formData: FormData) {
         cookieStore.set('authToken', token, {
             httpOnly: true, //prevents JS access
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             maxAge:60*60*24*300 //cookie lasts 300 days (sorry iphone users)
         });
 
@@ -55,7 +55,7 @@ export async function loginStudent(formData:FormData) {
         cookieStore.set('authToken', result.token.jwtToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
+            sameSite: 'lax',
             maxAge:60*60*24*300
         });
         
