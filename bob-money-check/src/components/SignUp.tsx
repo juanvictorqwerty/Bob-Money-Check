@@ -18,6 +18,7 @@ const SignUP =()=>{
     const [error, setError] = useState<string>('');
     const [success,setSuccess]=useState(false);
     const [loading, setLoading] = useState(false);
+    const [redirecting, setRedirecting] = useState(false);
     const [isOnline, setIsOnline] = useState(true);
     const [retryCount, setRetryCount] = useState(0);
 
@@ -81,6 +82,7 @@ const SignUP =()=>{
 
             if (result.success){
                 setSuccess(true);
+                setRedirecting(true);
                 // Use window.location for more reliable redirect
                 // Small delay to ensure cookie is set
                 setTimeout(() => {
@@ -250,6 +252,13 @@ const SignUP =()=>{
                     </Link>
                 </p>
             </form>
+            {/* Redirecting veil */}
+            {redirecting && (
+                <div className="absolute inset-0 bg-white/90 dark:bg-gray-700/90 flex flex-col items-center justify-center z-50">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
+                    <p className="text-gray-600 dark:text-gray-300 font-medium">Redirecting...</p>
+                </div>
+            )}
         </div>
     )
 }
