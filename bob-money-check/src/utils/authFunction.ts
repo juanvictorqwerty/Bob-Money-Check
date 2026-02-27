@@ -290,7 +290,7 @@ export async function SendRecoveryCode(email:string) {
     const userIDResult= await GetUserIdByEmail(email)
     
     if (!userIDResult.success){
-        return{success:false,message:"Wrong email"}
+        return{success:false,message:"No account found with this email address"}
     }
     const userID=userIDResult.userID as string
     const randomCode=Math.floor(100000 + Math.random() * 900000)
@@ -318,7 +318,8 @@ export async function SendRecoveryCode(email:string) {
         return {success:true,message:"Recovery email sent"}
 
     }catch(error){
-        return {success:false,message:"email not found"}
+        console.error("Failed to send recovery email:", error);
+        return {success:false,message:"Failed to send recovery email. Please check your network connection and try again."}
     }
 
 }

@@ -27,7 +27,9 @@ export function RequestRecoveryForm({ onEmailSent }: RequestRecoveryFormProps) {
             setError(result.message || 'Failed to send recovery email');
         }
         } catch (err) {
-        setError('An unexpected error occurred');
+            console.error('Recovery request error:', err);
+            const errorMessage = err instanceof Error ? err.message : 'Network error. Please check your connection.';
+            setError(errorMessage);
         } finally {
         setIsLoading(false);
         }
