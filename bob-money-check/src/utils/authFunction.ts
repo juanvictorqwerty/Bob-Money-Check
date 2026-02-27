@@ -302,6 +302,12 @@ export async function SendRecoveryCode(email:string) {
     }
 
     try{
+        // Check if email credentials are configured
+        if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+            console.error("Email credentials not configured - EMAIL_USER:", process.env.EMAIL_USER, "EMAIL_PASS:", process.env.EMAIL_PASS ? "[SET]" : "[NOT SET]");
+            return {success:false,message:"Email service not configured. Please contact support."};
+        }
+        
         const transporter=nodemailer.createTransport({
             service:"gmail",
             auth:{
@@ -318,7 +324,13 @@ export async function SendRecoveryCode(email:string) {
         return {success:true,message:"Recovery email sent"}
 
     }catch(error){
-        console.error("Failed to send recovery email:", error);
+        // Log the full error with all details including sensitive data
+        console.error("=== FULL ERROR DEBUG ===");
+        console.error("Error type:", typeof error);
+        console.error("Error message:", error);
+        console.error("Error stack:", error instanceof Error ? error.stack : "No stack");
+        console.error("Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+        console.error("========================");
         return {success:false,message:"Failed to send recovery email. Please check your network connection and try again."}
     }
 

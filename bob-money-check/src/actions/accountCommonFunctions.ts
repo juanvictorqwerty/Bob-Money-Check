@@ -102,7 +102,10 @@ export async function DisconnectAllExceptOne() {
 }
 
 export async function RequestRecoveryEmail(email:string) {
+    console.log("=== RequestRecoveryEmail called ===");
+    console.log("Email:", email);
     const result= await SendRecoveryCode(email)
+    console.log("SendRecoveryCode result:", JSON.stringify(result));
     if(!result.success){
         return {success:false,message:result.message}
     }

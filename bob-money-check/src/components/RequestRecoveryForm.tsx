@@ -19,7 +19,10 @@ export function RequestRecoveryForm({ onEmailSent }: RequestRecoveryFormProps) {
         setError(null);
 
     try {
+        console.log("=== RequestRecoveryForm submission ===");
+        console.log("Email:", email);
         const result = await RequestRecoveryEmail(email);
+        console.log("Result:", JSON.stringify(result));
         
         if (result.success) {
             onEmailSent(email);
